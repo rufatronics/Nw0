@@ -6,75 +6,118 @@ import SignalIntel from './components/SignalIntel';
 import { Eye, EyeOff, Brain, Loader2, ShieldCheck, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '@/src/lib/utils';
-import { db, auth, handleFirestoreError, OperationType } from './firebase';
-import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
-import { scrapeAndAnalyzeSecurity, StateThreatData, HeatmapCell } from './services/aiService';
-import { useAuthState } from 'react-firebase-hooks/auth';
+import { supabase } from './lib/supabase';
+import { StateThreatData, HeatmapCell, IntelReport, RegionalHeatmap } from './types';
 
 export default function App() {
-  const [user] = useAuthState(auth);
   const [uiVisible, setUiVisible] = useState(true);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [stateThreats, setStateThreats] = useState<StateThreatData[]>([]);
-  const [intelReports, setIntelReports] = useState<any[]>([]);
+  const [intelReports, setIntelReports] = useState<IntelReport[]>([]);
   const [heatmapCells, setHeatmapCells] = useState<HeatmapCell[]>([]);
 
-  // 1. Real-time listener for State Threats
+  // 1. Initial Fetch and Real-time listener for State Threats
   useEffect(() => {
-    const path = "stateThreats";
-    const q = query(collection(db, path));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const threats = snapshot.docs.map(doc => doc.data() as StateThreatData);
-      setStateThreats(threats);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.GET, path);
-    });
-    return () => unsubscribe();
-  }, []);
+    const fetchStateThreats = async () => {
+      const { data, error } = await supabase
+        .from('state_threats')
+        .select('*');
+      if (error) console.error('Error fetching state threats:', error);
+      else setStateThreats(data || []);
+    };
 
-  // 2. Real-time listener for Intel Reports
-  useEffect(() => {
-    const path = "intelReports";
-    const q = query(collection(db, path), orderBy("timestamp", "desc"), limit(10));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const reports = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setIntelReports(reports);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.GET, path);
-    });
-    return () => unsubscribe();
-  }, []);
+    fetchStateThreats();
 
-  // 3. Real-time listener for Regional Heatmaps
-  useEffect(() => {
-    const path = "regionalHeatmaps";
-    const q = query(collection(db, path));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const allCells: HeatmapCell[] = [];
-      console.log(`Heatmap snapshot received. Documents: ${snapshot.size}`);
-      snapshot.docs.forEach(doc => {
-        const data = doc.data();
-        if (data.cells) {
-          console.log(`Region ${data.region} has ${data.cells.length} cells.`);
-          allCells.push(...data.cells);
+    const subscription = supabase
+      .channel('state_threats_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'state_threats' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          setStateThreats(prev => [...prev, payload.new as StateThreatData]);
+        } else if (payload.eventType === 'UPDATE') {
+          setStateThreats(prev => prev.map(item => item.state_name === payload.new.state_name ? payload.new as StateThreatData : item));
+        } else if (payload.eventType === 'DELETE') {
+          setStateThreats(prev => prev.filter(item => item.state_name !== payload.old.state_name));
         }
-      });
-      console.log(`Total heatmap cells: ${allCells.length}`);
-      setHeatmapCells(allCells);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.GET, path);
-    });
-    return () => unsubscribe();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, []);
+
+  // 2. Initial Fetch and Real-time listener for Intel Reports
+  useEffect(() => {
+    const fetchIntelReports = async () => {
+      const { data, error } = await supabase
+        .from('intel_reports')
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .limit(10);
+      if (error) console.error('Error fetching intel reports:', error);
+      else setIntelReports(data || []);
+    };
+
+    fetchIntelReports();
+
+    const subscription = supabase
+      .channel('intel_reports_changes')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'intel_reports' }, (payload) => {
+        setIntelReports(prev => [payload.new as IntelReport, ...prev].slice(0, 10));
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, []);
+
+  // 3. Initial Fetch and Real-time listener for Regional Heatmaps
+  useEffect(() => {
+    const fetchHeatmaps = async () => {
+      const { data, error } = await supabase
+        .from('regional_heatmaps')
+        .select('*');
+      if (error) {
+        console.error('Error fetching heatmaps:', error);
+      } else {
+        const allCells: HeatmapCell[] = [];
+        data?.forEach((region: RegionalHeatmap) => {
+          if (region.cells) {
+            allCells.push(...region.cells);
+          }
+        });
+        setHeatmapCells(allCells);
+      }
+    };
+
+    fetchHeatmaps();
+
+    const subscription = supabase
+      .channel('regional_heatmaps_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'regional_heatmaps' }, async () => {
+        // For heatmaps, it's often easier to refetch all to ensure consistency across regions
+        const { data } = await supabase.from('regional_heatmaps').select('*');
+        const allCells: HeatmapCell[] = [];
+        data?.forEach((region: RegionalHeatmap) => {
+          if (region.cells) allCells.push(...region.cells);
+        });
+        setHeatmapCells(allCells);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
   }, []);
 
   const runAIPrediction = async () => {
     if (isAnalyzing) return;
     setIsAnalyzing(true);
     try {
-      await scrapeAndAnalyzeSecurity();
+      const { data, error } = await supabase.functions.invoke('analyze-security');
+      if (error) throw error;
+      console.log('AI Prediction triggered:', data);
     } catch (error) {
       console.error('AI Prediction failed:', error);
     } finally {
@@ -156,18 +199,18 @@ export default function App() {
                       {stateThreats.length === 0 ? (
                         <div className="text-[9px] text-gray-600 italic">Awaiting AI analysis...</div>
                       ) : (
-                        stateThreats.sort((a, b) => b.threatLevel - a.threatLevel).map((state) => (
-                          <div key={state.stateName} className="space-y-1">
+                        stateThreats.sort((a, b) => b.threat_level - a.threat_level).map((state) => (
+                          <div key={state.state_name} className="space-y-1">
                             <div className="flex justify-between text-[8px] font-mono uppercase text-gray-400">
-                              <span>{state.stateName}</span>
-                              <span className={state.threatLevel >= 8 ? "text-tactical-danger" : "text-tactical-warning"}>
-                                {state.threatLevel}/10
+                              <span>{state.state_name}</span>
+                              <span className={state.threat_level >= 8 ? "text-tactical-danger" : "text-tactical-warning"}>
+                                {state.threat_level}/10
                               </span>
                             </div>
                             <div className="h-1 w-full bg-tactical-border rounded-full overflow-hidden">
                               <div 
-                                className={cn("h-full", state.threatLevel >= 8 ? "bg-tactical-danger" : "bg-tactical-warning")} 
-                                style={{ width: `${state.threatLevel * 10}%` }} 
+                                className={cn("h-full", state.threat_level >= 8 ? "bg-tactical-danger" : "bg-tactical-warning")} 
+                                style={{ width: `${state.threat_level * 10}%` }} 
                               />
                             </div>
                           </div>

@@ -2,7 +2,7 @@ import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polygon, Circle, Rectangle } from 'react-leaflet';
 import L from 'leaflet';
 import { cn } from '@/src/lib/utils';
-import { StateThreatData, HeatmapCell } from '../services/aiService';
+import { StateThreatData, HeatmapCell } from '../types';
 
 // Fix for default marker icons in Leaflet
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -134,18 +134,18 @@ export default function TacticalMap({
 
         {/* State Markers and Threat Zones */}
         {stateThreats.map((state) => {
-          const coords = STATE_COORDINATES[state.stateName];
+          const coords = STATE_COORDINATES[state.state_name];
           if (!coords) return null;
           
           return (
-            <React.Fragment key={state.stateName}>
+            <React.Fragment key={state.state_name}>
               <Circle 
                 center={coords} 
                 radius={40000} // 40km radius for state-level visualization
                 pathOptions={{ 
-                  fillColor: getThreatColor(state.threatLevel), 
+                  fillColor: getThreatColor(state.threat_level), 
                   fillOpacity: 0.1, 
-                  color: getThreatColor(state.threatLevel), 
+                  color: getThreatColor(state.threat_level), 
                   weight: 2,
                   dashArray: '10, 10'
                 }} 
@@ -153,13 +153,13 @@ export default function TacticalMap({
                 <Popup>
                   <div className="bg-tactical-panel p-3 border border-tactical-border text-tactical-accent font-mono text-[10px]">
                     <h3 className="font-bold border-b border-tactical-border mb-2 pb-1 uppercase text-sm">
-                      {state.stateName} STATE REPORT
+                      {state.state_name} STATE REPORT
                     </h3>
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-gray-500">THREAT LEVEL:</span>
-                        <span className={cn("font-bold", state.threatLevel >= 8 ? "text-tactical-danger" : "text-tactical-warning")}>
-                          {state.threatLevel}/10
+                        <span className={cn("font-bold", state.threat_level >= 8 ? "text-tactical-danger" : "text-tactical-warning")}>
+                          {state.threat_level}/10
                         </span>
                       </div>
                       <div>
@@ -168,7 +168,7 @@ export default function TacticalMap({
                       </div>
                       <div>
                         <span className="text-gray-500 block mb-1">TERRAIN ANALYSIS:</span>
-                        <p className="text-gray-300">{state.terrainFactors}</p>
+                        <p className="text-gray-300">{state.terrain_factors}</p>
                       </div>
                       <div className="pt-2 border-t border-tactical-border">
                         <p className="text-xs leading-relaxed">{state.summary}</p>

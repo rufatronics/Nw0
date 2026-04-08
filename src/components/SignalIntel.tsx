@@ -40,7 +40,7 @@ export default function SignalIntel({ reports }: SignalIntelProps) {
                   <div className="flex-1 space-y-1">
                     <div className="flex justify-between items-center">
                       <span className="text-[9px] font-mono text-gray-500">
-                        {item.timestamp?.toDate ? item.timestamp.toDate().toLocaleTimeString() : 'RECENT'} | {item.state || 'GLOBAL'}
+                        {item.timestamp ? new Date(item.timestamp).toLocaleTimeString() : 'RECENT'} | {item.state || 'GLOBAL'}
                       </span>
                     </div>
                     <p className={cn(

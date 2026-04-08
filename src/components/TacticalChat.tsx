@@ -1,11 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Loader2, Minimize2, Maximize2, X } from 'lucide-react';
-import { GoogleGenAI } from "@google/genai";
+import { supabase } from '../lib/supabase';
 import Markdown from 'react-markdown';
 import { cn } from '@/src/lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 interface Message {
   role: 'user' | 'model';
@@ -36,18 +34,13 @@ export default function TacticalChat() {
     setIsLoading(true);
 
     try {
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: [...messages.map(m => ({
-          role: m.role,
-          parts: [{ text: m.content }]
-        })), { role: 'user', parts: [{ text: userMessage }] }],
-        config: {
-          systemInstruction: "You are a tactical signal intelligence analyst for Northwatch. Your tone is professional, concise, and military-grade. You analyze threats, summarize OSINT data, and provide risk assessments. Use technical terminology where appropriate.",
-        }
+      const { data, error } = await supabase.functions.invoke('chat', {
+        body: { messages, userMessage }
       });
 
-      setMessages(prev => [...prev, { role: 'model', content: response.text || 'No response received.' }]);
+      if (error) throw error;
+
+      setMessages(prev => [...prev, { role: 'model', content: data.text || 'No response received.' }]);
     } catch (error) {
       console.error('Chat error:', error);
       setMessages(prev => [...prev, { role: 'model', content: 'ERROR: Signal lost. Re-establishing connection...' }]);
