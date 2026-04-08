@@ -1,0 +1,62 @@
+{
+  "entities": {
+    "StateThreat": {
+      "title": "State Threat Level",
+      "description": "Security and safety assessment for a specific state in Northern Nigeria.",
+      "type": "object",
+      "properties": {
+        "stateName": { "type": "string", "description": "Name of the state." },
+        "threatLevel": { "type": "number", "description": "Safety score from 1 (Safe) to 10 (Critical)." },
+        "weather": { "type": "string", "description": "Current weather conditions." },
+        "terrainFactors": { "type": "string", "description": "Terrain and mobility analysis." },
+        "lastUpdated": { "type": "string", "format": "date-time" },
+        "summary": { "type": "string", "description": "AI-generated tactical summary." }
+      },
+      "required": ["stateName", "threatLevel", "lastUpdated"]
+    },
+    "IntelReport": {
+      "title": "Intelligence Report",
+      "description": "Scraped news or field report used for threat analysis.",
+      "type": "object",
+      "properties": {
+        "source": { "type": "string" },
+        "content": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "state": { "type": "string" }
+      },
+      "required": ["source", "content", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/stateThreats/{stateId}": {
+      "schema": "StateThreat",
+      "description": "Real-time threat levels for Northern Nigeria states."
+    },
+    "/intelReports/{reportId}": {
+      "schema": "IntelReport",
+      "description": "Individual intelligence reports from news and OSINT."
+    },
+    "/regionalHeatmaps/{regionId}": {
+      "schema": {
+        "title": "Regional Heatmap",
+        "type": "object",
+        "properties": {
+          "region": { "type": "string" },
+          "cells": { "type": "array", "items": { "type": "object" } },
+          "timestamp": { "type": "string", "format": "date-time" }
+        }
+      },
+      "description": "10km grid heatmap data for a region."
+    },
+    "/systemConfig/{configId}": {
+      "schema": {
+        "title": "System Config",
+        "type": "object",
+        "properties": {
+          "timestamp": { "type": "string", "format": "date-time" }
+        }
+      },
+      "description": "System-wide configuration and last run times."
+    }
+  }
+}

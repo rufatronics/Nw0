@@ -1,0 +1,5 @@
+{
+  "name": "Northwatch Tactical",
+  "description": "Predictive security dashboard for tactical intelligence and threat analysis.",
+  "requestFramePermissions": ["geolocation"]
+}

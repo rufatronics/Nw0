@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+        (request.auth.token.email == "ahmadgadamu@gmail.com" && request.auth.token.email_verified == true);
+    }
+
+    // State Threats: Publicly readable, only admin can update
+    match /stateThreats/{stateId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Intel Reports: Publicly readable, only admin can update
+    match /intelReports/{reportId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Regional Heatmaps: Publicly readable, only admin can update
+    match /regionalHeatmaps/{regionId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // System Config: Publicly readable (for run-time checks), only admin can update
+    match /systemConfig/{configId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}
