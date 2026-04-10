@@ -82,18 +82,17 @@ export default function TacticalMap({
   const displayCells = heatmapCells.length > 0 ? heatmapCells : baseGrid;
   
   const getThreatColor = (level: number) => {
-    if (level >= 8) return '#ff3131'; // Critical
-    if (level >= 6) return '#ffb000'; // High
-    if (level >= 4) return '#facc15'; // Moderate
-    return '#00ff41'; // Safe
+    if (level >= 8) return '#FF2079'; // Dangerous (Hot Pink)
+    if (level >= 4) return '#FFB300'; // Moderate (Amber)
+    return '#00BFFF'; // Safe (Cyan)
   };
 
   const getHeatmapColor = (level: number) => {
-    if (level >= 8) return '#ff0000'; // Pure Red (Critical)
-    if (level >= 6) return '#ff4500'; // Orange Red (High)
-    if (level >= 4) return '#ffa500'; // Orange (Moderate)
-    if (level >= 3) return '#ffd700'; // Gold/Yellow (Calculated Risk)
-    return '#00ff41'; // Tactical Green (Safe Zone)
+    if (level >= 8) return '#FF2079'; // Dangerous
+    if (level >= 6) return '#FF2079'; // High (using Dangerous color as requested)
+    if (level >= 4) return '#FFB300'; // Moderate
+    if (level >= 3) return '#FFB300'; // Calculated Risk (using Moderate color)
+    return '#00BFFF'; // Safe Zone
   };
 
   return (

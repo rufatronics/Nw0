@@ -33,8 +33,8 @@ export default function SignalIntel({ reports }: SignalIntelProps) {
               >
                 <div className="flex gap-3">
                   <div className="mt-1">
-                    {item.threatLevel >= 8 ? <ShieldAlert className="w-3 h-3 text-tactical-danger" /> : 
-                     item.threatLevel >= 5 ? <AlertTriangle className="w-3 h-3 text-tactical-warning" /> :
+                    {item.threat_level >= 8 ? <ShieldAlert className="w-3 h-3 text-tactical-danger" /> : 
+                     item.threat_level >= 5 ? <AlertTriangle className="w-3 h-3 text-tactical-warning" /> :
                      <Info className="w-3 h-3 text-tactical-accent" />}
                   </div>
                   <div className="flex-1 space-y-1">
@@ -45,8 +45,8 @@ export default function SignalIntel({ reports }: SignalIntelProps) {
                     </div>
                     <p className={cn(
                       "text-[10px] font-mono leading-tight",
-                      item.threatLevel >= 8 ? "text-tactical-danger" : 
-                      item.threatLevel >= 5 ? "text-tactical-warning" : "text-gray-300"
+                      item.threat_level >= 8 ? "text-tactical-danger" : 
+                      item.threat_level >= 5 ? "text-tactical-warning" : "text-gray-300"
                     )}>
                       {item.content}
                     </p>

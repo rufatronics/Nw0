@@ -5,9 +5,9 @@
   --color-tactical-bg: #0a0a0b;
   --color-tactical-panel: #141416;
   --color-tactical-border: #2a2a2e;
-  --color-tactical-accent: #00ff41; /* Phosphor Green */
-  --color-tactical-warning: #ffb000; /* Amber */
-  --color-tactical-danger: #ff3131; /* Crimson */
+  --color-tactical-accent: #00BFFF; /* Cyan (Safe) */
+  --color-tactical-warning: #FFB300; /* Amber (Moderate) */
+  --color-tactical-danger: #FF2079; /* Hot Pink/Magenta (Dangerous) */
   --font-mono: "JetBrains Mono", "Fira Code", monospace;
 }
 
