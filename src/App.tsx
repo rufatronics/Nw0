@@ -115,7 +115,7 @@ export default function App() {
     if (isAnalyzing) return;
     setIsAnalyzing(true);
     try {
-      const { data, error } = await supabase.functions.invoke('analyze-security');
+      const { data, error } = await supabase.functions.invoke('regional-security-analysis');
       if (error) throw error;
       console.log('AI Prediction triggered:', data);
     } catch (error) {
