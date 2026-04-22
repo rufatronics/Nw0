@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Loader2, Minimize2, Maximize2, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import tacticalStaticData from '../data/tactical_db.json';
 import Markdown from 'react-markdown';
 import { cn } from '@/src/lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
@@ -42,8 +43,19 @@ export default function TacticalChat() {
 
       setMessages(prev => [...prev, { role: 'model', content: data.text || 'No response received.' }]);
     } catch (error) {
-      console.error('Chat error:', error);
-      setMessages(prev => [...prev, { role: 'model', content: 'ERROR: Signal lost. Re-establishing connection...' }]);
+      console.warn('Network error or 404. Falling back to local intelligence manual.');
+      
+      // Local fallback logic: match keywords in the static database
+      const lowerInput = userMessage.toLowerCase();
+      const fallbackMatch = tacticalStaticData.fallback_chat_responses.find(item => 
+        item.keywords.some(kw => lowerInput.includes(kw.toLowerCase()))
+      );
+
+      const fallbackContent = fallbackMatch 
+        ? `[LOCAL_INTEL_CACHE] ${fallbackMatch.response}`
+        : "[LOCAL_INTEL_CACHE] No specific intelligence found for your query in the current offline manual. Try keywords like 'Borno', 'Highway', or 'Status'.";
+
+      setMessages(prev => [...prev, { role: 'model', content: fallbackContent }]);
     } finally {
       setIsLoading(false);
     }

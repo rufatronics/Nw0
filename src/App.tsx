@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '@/src/lib/utils';
 import { supabase } from './lib/supabase';
 import { StateThreatData, HeatmapCell, IntelReport, RegionalHeatmap } from './types';
+import tacticalStaticData from './data/tactical_db.json';
 
 export default function App() {
   const [uiVisible, setUiVisible] = useState(true);
@@ -15,18 +16,30 @@ export default function App() {
   const [stateThreats, setStateThreats] = useState<StateThreatData[]>([]);
   const [intelReports, setIntelReports] = useState<IntelReport[]>([]);
   const [heatmapCells, setHeatmapCells] = useState<HeatmapCell[]>([]);
+  const [dataSource, setDataSource] = useState<'LIVE' | 'CACHE'>('LIVE');
 
   // 1. Initial Fetch and Real-time listener for State Threats
   useEffect(() => {
     const fetchStateThreats = async () => {
-      const { data, error } = await supabase
-        .from('state_threats')
-        .select('*');
-      if (error) console.error('Error fetching state threats:', error);
-      else setStateThreats(data || []);
+      try {
+        const { data, error } = await supabase
+          .from('state_threats')
+          .select('*');
+        
+        if (error || !data || data.length === 0) throw new Error('Supabase unavailable');
+        
+        setStateThreats(data || []);
+        setDataSource('LIVE');
+      } catch (e) {
+        console.warn('Falling back to Static Intelligence Cache for States');
+        setStateThreats(tacticalStaticData.state_threats as StateThreatData[]);
+        setDataSource('CACHE');
+      }
     };
 
     fetchStateThreats();
+    
+    // ... (rest of the registration logic remains, but we add guards)
 
     const subscription = supabase
       .channel('state_threats_changes')
@@ -49,13 +62,18 @@ export default function App() {
   // 2. Initial Fetch and Real-time listener for Intel Reports
   useEffect(() => {
     const fetchIntelReports = async () => {
-      const { data, error } = await supabase
-        .from('intel_reports')
-        .select('*')
-        .order('timestamp', { ascending: false })
-        .limit(10);
-      if (error) console.error('Error fetching intel reports:', error);
-      else setIntelReports(data || []);
+      try {
+        const { data, error } = await supabase
+          .from('intel_reports')
+          .select('*')
+          .order('timestamp', { ascending: false })
+          .limit(10);
+        
+        if (error || !data || data.length === 0) throw new Error('Supabase unavailable');
+        setIntelReports(data || []);
+      } catch (e) {
+        setIntelReports((tacticalStaticData.intel_reports || []) as IntelReport[]);
+      }
     };
 
     fetchIntelReports();
@@ -75,17 +93,22 @@ export default function App() {
   // 3. Initial Fetch and Real-time listener for Regional Heatmaps
   useEffect(() => {
     const fetchHeatmaps = async () => {
-      const { data, error } = await supabase
-        .from('regional_heatmaps')
-        .select('*');
-      if (error) {
-        console.error('Error fetching heatmaps:', error);
-      } else {
+      try {
+        const { data, error } = await supabase
+          .from('regional_heatmaps')
+          .select('*');
+        
+        if (error || !data || data.length === 0) throw new Error('Supabase unavailable');
+
         const allCells: HeatmapCell[] = [];
         data?.forEach((region: RegionalHeatmap) => {
-          if (region.cells) {
-            allCells.push(...region.cells);
-          }
+          if (region.cells) allCells.push(...region.cells);
+        });
+        setHeatmapCells(allCells);
+      } catch (e) {
+        const allCells: HeatmapCell[] = [];
+        tacticalStaticData.regional_heatmaps.forEach((region: any) => {
+          if (region.cells) allCells.push(...region.cells);
         });
         setHeatmapCells(allCells);
       }
@@ -157,7 +180,7 @@ export default function App() {
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-tactical-accent animate-pulse" />
                   <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-tactical-accent">
-                    Intelligence Loop: {isAnalyzing ? 'Analyzing...' : 'Active'}
+                    Intelligence Loop: {isAnalyzing ? 'Analyzing...' : 'Active'} | Source: {dataSource === 'LIVE' ? 'Cloud' : 'Cache'}
                   </span>
                 </div>
                 <button 

@@ -1,0 +1,69 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "last_sync": "2026-04-22T23:00:00Z",
+    "origin": "STATIC_CACHE",
+    "status": "OPERATIONAL"
+  },
+  "state_threats": [
+    {
+      "state_name": "Borno",
+      "threat_level": 9,
+      "weather": "Extreme Heat, Dust Haze in North",
+      "terrain_factors": "Dense shrubland, Sambisa forest corridors, limited paved access in rural east.",
+      "summary": "High insurgent mobility detected near Lake Chad. Commercial routes heavily monitored.",
+      "last_updated": "2026-04-22T23:00:00Z"
+    },
+    {
+      "state_name": "Kaduna",
+      "threat_level": 7,
+      "weather": "Moderate Rainfall Expected",
+      "terrain_factors": "Hilly terrain in south, forested bypasses along Abuja-Kaduna highway.",
+      "summary": "Banditry incidents reported in western fringes. Security presence reinforced at critical junctions.",
+      "last_updated": "2026-04-22T23:00:00Z"
+    },
+    {
+      "state_name": "Kano",
+      "threat_level": 2,
+      "weather": "Clear Skies",
+      "terrain_factors": "Urban density, flat savanna outskirts, high visibility.",
+      "summary": "Commercial hub remain stable. Intelligence suggests spillover risk from eastern neighbors is low.",
+      "last_updated": "2026-04-22T23:00:00Z"
+    }
+  ],
+  "intel_reports": [
+    {
+      "id": "st-001",
+      "source": "OSINT Feed Alpha",
+      "content": "Atypical troop movements observed along border lines between Borno and Yobe.",
+      "state": "Borno",
+      "timestamp": "2026-04-22T22:45:00Z",
+      "threat_level": 8
+    },
+    {
+      "id": "st-002",
+      "source": "Terrain Analyzer",
+      "content": "Flash floods in Nasarawa lowlands may impact tactical mobility for 48 hours.",
+      "state": "Nasarawa",
+      "timestamp": "2026-04-22T21:30:00Z",
+      "threat_level": 4
+    }
+  ],
+  "regional_heatmaps": [
+    {
+      "region_name": "NORTH_ZONE_ALPHA",
+      "cells": [
+        { "lat": 11.83, "lng": 13.15, "level": 9 },
+        { "lat": 11.85, "lng": 13.20, "level": 8 },
+        { "lat": 10.51, "lng": 7.41, "level": 7 },
+        { "lat": 12.00, "lng": 8.59, "level": 2 }
+      ],
+      "last_updated": "2026-04-22T23:00:00Z"
+    }
+  ],
+  "fallback_chat_responses": [
+    { "keywords": ["borno", "maiduguri"], "response": "CURRENT_INTEL_BORNO: High threat remains. Sambisa corridors are active. Avoid Rann routes." },
+    { "keywords": ["kaduna", "highway"], "response": "TRAFFIC_ALERT: Abuja-Kaduna link under heightened surveillance. Use daytime transit only." },
+    { "keywords": ["help", "status"], "response": "SYSTEM_STATUS: Running on Static Cache. Last global intel sync verified 3 hours ago." }
+  ]
+}
