@@ -47,12 +47,12 @@ export default function TacticalChat() {
       
       // Local fallback logic: match keywords in the static database
       const lowerInput = userMessage.toLowerCase();
-      const fallbackMatch = tacticalStaticData.fallback_chat_responses.find(item => 
-        item.keywords.some(kw => lowerInput.includes(kw.toLowerCase()))
+      const fallbackMatch = (tacticalStaticData as any).comms_fallback.find((item: any) => 
+        item.k.some((kw: string) => lowerInput.includes(kw.toLowerCase()))
       );
 
       const fallbackContent = fallbackMatch 
-        ? `[LOCAL_INTEL_CACHE] ${fallbackMatch.response}`
+        ? `[LOCAL_INTEL_CACHE] ${fallbackMatch.r}`
         : "[LOCAL_INTEL_CACHE] No specific intelligence found for your query in the current offline manual. Try keywords like 'Borno', 'Highway', or 'Status'.";
 
       setMessages(prev => [...prev, { role: 'model', content: fallbackContent }]);

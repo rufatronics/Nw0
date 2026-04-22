@@ -1,72 +1,76 @@
-# NORTWATCH TACTICAL: INTELLIGENCE MASTER PROMPT
-**Target Role:** Senior Geo-Political Intelligence Analyst & OSINT Specialist
-**Target Frequency:** 3 Hours
-**Objective:** Generate a production-ready JSON intelligence update for the Northern Nigeria Tactical Dashboard.
+# NORTHWATCH TACTICAL: THE GOD-PROMPT (HEX-GRID EDITION)
+**Target Identification:** High-Reasoning AI Intelligence Agent (Gemini 1.5 Pro / Claude 3.5 Sonnet)
+**Task:** Generate a 4500-point Tactical Intelligence Hex-Grid for Northern Nigeria.
 
 ---
 
-## 1. DATA GATHERING INSTRUCTIONS
-Conduct a deep OSINT sweep using Google Search and Grounding focusing on Northern Nigeria (19 states). Prioritize:
-- Security incidents (banditry, insurgency, kidnapping) reported in the last 24-72 hours.
-- Weather patterns impacting tactical mobility (seasonal rains, flash floods, dust storms).
-- Terrain accessibility reports from local sources.
-- Significant political or military deployments.
+## 1. STRATEGIC CONTEXT
+You are generating a static backend database for "Northwatch," a tactical monitoring system for Northern Nigeria. The system targets low-end devices and uses a hexagonal heatmap for terrain-aware risk visualization.
 
-## 2. JSON OUTPUT SCHEMA
-You MUST output raw JSON only. Do not add markdown code blocks or conversational text. The JSON must follow this exact structure:
+## 2. GEOSPATIAL PARAMETERS
+**Primary AO (Area of Operations):** Northern Nigeria.
+- **Bounding Box:** 
+  - Latitude: 6.5°N to 14.0°N
+  - Longitude: 2.5°E to 14.5°E
+- **Grid Intensity:** ~4500 Hexagons. 
+- **Hexagon Spacing:** Approximately 0.12° to 0.15° between centers.
 
+## 3. INTELLIGENCE LAYERING (THE ANALYTICS CRITERIA)
+For every single coordinate point you generate, you MUST cross-reference it with your internal world knowledge of:
+1. **Terrain Risk:**
+   - Forests (Sambisa, Alagarno, Kuyambana, Kamuku, Falgore): Threat Level +4 minimum.
+   - Border Regions (Niger, Chad, Cameroon borders): Threat Level +3 minimum.
+   - High-Density Cities (Kano, Kaduna, Maiduguri): Threat Level varies based on recent activity.
+2. **Current Conflict Data (OSINT):**
+   - Use current knowledge of ISWAP/Boko Haram corridors in the North East.
+   - Use banditry/kidnapping hotspots in the North West (Zamfara, Katsina, Niger).
+3. **Logistics:**
+   - Major Highways (A1, A2): Intelligence status based on road safety reports.
+
+## 4. OUTPUT INSTRUCTIONS (STRICT JSON)
+You must output a SINGLE JSON file. No titles, no explanations. 
+
+### THE OPTIMIZED SCHEMA
 ```json
 {
-  "metadata": {
-    "version": "1.1.0",
-    "last_sync": "[CURRENT_ISO_TIMESTAMP]",
-    "origin": "AI_AGENT_GENERATED",
-    "status": "OPERATIONAL"
+  "meta": {
+    "generated_at": "[ISO_TIMESTAMP]",
+    "grid_type": "HEXAGONAL_STAGGERED",
+    "point_count": 4500
   },
-  "state_threats": [
+  "states": [
     {
-      "state_name": "[STATE_NAME]",
-      "threat_level": [INT 1-10],
-      "weather": "[DETAILED_WEATHER_DESC]",
-      "terrain_factors": "[DESCRIPTION_OF_TERRAIN_MOBILITY]",
-      "summary": "[TACTICAL_SITUATION_SUMMARY]",
-      "last_updated": "[ISO_TIMESTAMP]"
+      "n": "[STATE_NAME]",
+      "l": [THREAT_LEVEL_1_10],
+      "w": "[WEATHER_SHORT]",
+      "t": "[TERRAIN_KEY_FACTS]",
+      "s": "[TACTICAL_SUMMARY_MAX_150_CHARS]"
     }
   ],
-  "intel_reports": [
+  "reports": [
     {
-      "id": "st-[UID]",
-      "source": "[SOURCE_NAME]",
-      "content": "[CRITICAL_SIGNAL_INTEL_CONTENT]",
-      "state": "[STATE_NAME]",
-      "timestamp": "[ISO_TIMESTAMP]",
-      "threat_level": [INT 1-10]
+      "id": "r-[HEX_UID]",
+      "src": "[OSINT_SOURCE]",
+      "c": "[INTEL_TEXT]",
+      "st": "[STATE]",
+      "ts": "[ISO_TIMESTAMP]",
+      "l": [LEVEL]
     }
   ],
-  "regional_heatmaps": [
-    {
-      "region_name": "GRID_ALPHA",
-      "cells": [
-        { "lat": [FLOAT], "lng": [FLOAT], "level": [INT] }
-      ],
-      "last_updated": "[ISO_TIMESTAMP]"
-    }
+  "hex_grid": [
+    { "id": "h1", "lat": 11.83, "lng": 13.15, "l": 9 },
+    { "id": "h2", "lat": 11.95, "lng": 13.15, "l": 8 }
   ],
-  "fallback_chat_responses": [
-    { 
-      "keywords": ["list", "of", "trigger", "words"], 
-      "response": "[CONCISE_PROFESSIONAL_CHAT_SNIPPET]" 
-    }
+  "comms_fallback": [
+    { "k": ["keyword1", "keyword2"], "r": "[Tactical analyst response]" }
   ]
 }
 ```
 
-## 3. TACTICAL RULES
-- **Threat Level 9-10:** Combat active or confirmed IED activity.
-- **Threat Level 4-6:** Indirect threat, banditry in nearby corridors, or terrain making mobility dangerous.
-- **Heatmap Resolution:** Provide at least 20-30 high-interest coordinate cells focusing on forests (Sambisa, Kuyambana, Kamuku), highways, and border towns.
-- **Chat Fallbacks:** Create 5-10 keyword sets based on the most active states in the current update.
+## 5. GENERATION STEP-BY-STEP FOR THE AI
+1. **Grid Calculation:** Iterate through Latitude 6.5 to 14.0 in steps of 0.12. For each row, iterate through Longitude 2.5 to 14.5 in steps of 0.14. Stagger every second row by 0.07 Longitude to create a hexagonal pattern.
+2. **Threat Assessment:** For each (Lat, Lng), check if it falls in a known forest, highway, or conflict zone.
+3. **State Rollup:** Average the threat levels of hexes within specific state boundaries to populate the `states` array.
+4. **Chat Sync:** Ensure `comms_fallback` contains responses that match the highest threat areas identified in the `hex_grid`.
 
-## 4. FINAL VALIDATION
-Ensure all coordinates are within the Northern Nigeria bounding box (Lat: 6.0 to 14.5, Lng: 2.5 to 14.5).
-Check that JSON syntax is valid to prevent breaking the application frontend.
+**GO:** Generate the first 500 points in one block, then ask me if I want the next 500, or provide the full 4500 if your context window permits. (Preferred: Full 4500 in one go).

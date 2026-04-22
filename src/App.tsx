@@ -32,7 +32,14 @@ export default function App() {
         setDataSource('LIVE');
       } catch (e) {
         console.warn('Falling back to Static Intelligence Cache for States');
-        setStateThreats(tacticalStaticData.state_threats as StateThreatData[]);
+        const fallbackStates = (tacticalStaticData as any).states.map((s: any) => ({
+          state_name: s.n,
+          threat_level: s.l,
+          weather: s.w,
+          terrain_factors: s.t,
+          summary: s.s
+        }));
+        setStateThreats(fallbackStates);
         setDataSource('CACHE');
       }
     };
@@ -72,7 +79,15 @@ export default function App() {
         if (error || !data || data.length === 0) throw new Error('Supabase unavailable');
         setIntelReports(data || []);
       } catch (e) {
-        setIntelReports((tacticalStaticData.intel_reports || []) as IntelReport[]);
+        const fallbackReports = ((tacticalStaticData as any).reports || []).map((r: any) => ({
+          id: r.id,
+          source: r.src,
+          content: r.c,
+          state: r.st,
+          timestamp: r.ts,
+          threat_level: r.l
+        }));
+        setIntelReports(fallbackReports);
       }
     };
 
@@ -106,11 +121,7 @@ export default function App() {
         });
         setHeatmapCells(allCells);
       } catch (e) {
-        const allCells: HeatmapCell[] = [];
-        tacticalStaticData.regional_heatmaps.forEach((region: any) => {
-          if (region.cells) allCells.push(...region.cells);
-        });
-        setHeatmapCells(allCells);
+        setHeatmapCells((tacticalStaticData as any).hex_grid || []);
       }
     };
 

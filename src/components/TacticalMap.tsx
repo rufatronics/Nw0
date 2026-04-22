@@ -95,6 +95,23 @@ export default function TacticalMap({
     return '#00BFFF'; // Safe Zone
   };
 
+  // Helper to create hexagon points
+  const getHexPoints = (lat: number, lng: number, size: number): [number, number][] => {
+    const points: [number, number][] = [];
+    for (let i = 0; i < 6; i++) {
+      const angle_deg = 60 * i + 30; // Pointy-top hex
+      const angle_rad = (Math.PI / 180) * angle_deg;
+      // Latitude is roughly 111km per degree. 
+      // Longitude varies by cos(lat), but at ~10N it is roughly 109km.
+      // We use a small approximation for the hex shape.
+      points.push([
+        lat + size * Math.sin(angle_rad),
+        lng + size * Math.cos(angle_rad) * 1.1 // Adjust for aspect ratio
+      ]);
+    }
+    return points;
+  };
+
   return (
     <div className={cn("relative w-full h-full", className)}>
       <MapContainer 
@@ -109,23 +126,25 @@ export default function TacticalMap({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         
-        {/* 10km Grid Heatmap (Terrain Based) */}
+        {/* Hexagonal Tactical Grid Heatmap */}
         {displayCells.map((cell, idx) => {
           if (typeof cell.lat !== 'number' || typeof cell.lng !== 'number') return null;
           const isBaseGrid = heatmapCells.length === 0;
-          const step = isBaseGrid ? 0.25 : 0.05; // Half of the grid step
+          
+          // Size of the hexagon (roughly half the grid step)
+          const hexSize = isBaseGrid ? 0.2 : 0.08; 
+          const hexPoints = getHexPoints(cell.lat, cell.lng, hexSize);
+
           return (
-            <Rectangle
-              key={`cell-${idx}`}
-              bounds={[
-                [cell.lat - step, cell.lng - step],
-                [cell.lat + step, cell.lng + step]
-              ]}
+            <Polygon
+              key={`hex-${idx}`}
+              positions={hexPoints}
               pathOptions={{
                 fillColor: getHeatmapColor(cell.level),
-                fillOpacity: isBaseGrid ? 0.1 : cell.level / 10,
-                color: 'transparent',
-                weight: 0
+                fillOpacity: isBaseGrid ? 0.1 : Math.min(0.7, cell.level / 12),
+                color: cell.level >= 8 ? '#FF2079' : 'transparent',
+                weight: cell.level >= 8 ? 0.5 : 0,
+                stroke: cell.level >= 8
               }}
             />
           );
