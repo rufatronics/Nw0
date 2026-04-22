@@ -122,16 +122,38 @@ export default function TacticalMap({
         className="w-full h-full"
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
         />
+
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] flex gap-4 pointer-events-none">
+          <div className="bg-black/60 backdrop-blur-md border border-tactical-accent/20 px-3 py-1 flex items-center gap-2">
+            <span className="text-[8px] font-mono text-tactical-accent uppercase tracking-widest">Lat: {center[0].toFixed(4)}N</span>
+            <div className="w-[1px] h-3 bg-tactical-accent/20" />
+            <span className="text-[8px] font-mono text-tactical-accent uppercase tracking-widest">Lng: {center[1].toFixed(4)}E</span>
+          </div>
+        </div>
+
+        {/* Tactical Crosshair Overlay */}
+        <div className="absolute inset-0 z-[1000] pointer-events-none flex items-center justify-center">
+          <div className="relative w-48 h-48">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1px] h-4 bg-tactical-accent/40" />
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[1px] h-4 bg-tactical-accent/40" />
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-[1px] bg-tactical-accent/40" />
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-[1px] bg-tactical-accent/40" />
+            <div className="absolute inset-0 border border-tactical-accent/10 rounded-full" />
+          </div>
+        </div>
         
         {/* Hexagonal Tactical Grid Heatmap */}
         {displayCells.map((cell, idx) => {
           if (typeof cell.lat !== 'number' || typeof cell.lng !== 'number') return null;
           const isBaseGrid = heatmapCells.length === 0;
           
-          // Size of the hexagon (roughly half the grid step)
+          // Tactical Visualization Logic
+          const isHighThreat = cell.level >= 8;
+          const isModerate = cell.level >= 4 && cell.level < 8;
+          
           const hexSize = isBaseGrid ? 0.2 : 0.08; 
           const hexPoints = getHexPoints(cell.lat, cell.lng, hexSize);
 
@@ -141,10 +163,12 @@ export default function TacticalMap({
               positions={hexPoints}
               pathOptions={{
                 fillColor: getHeatmapColor(cell.level),
-                fillOpacity: isBaseGrid ? 0.1 : Math.min(0.7, cell.level / 12),
-                color: cell.level >= 8 ? '#FF2079' : 'transparent',
-                weight: cell.level >= 8 ? 0.5 : 0,
-                stroke: cell.level >= 8
+                // Only high threat gets significant fill. Safe hexes are barely visible wireframes.
+                fillOpacity: isHighThreat ? 0.4 : isModerate ? 0.15 : 0.02,
+                color: isHighThreat ? '#FF2079' : isModerate ? '#FFB300' : 'rgba(0, 191, 255, 0.1)',
+                weight: isHighThreat ? 1 : 0.3,
+                stroke: true,
+                dashArray: isHighThreat ? undefined : '2, 4'
               }}
             />
           );

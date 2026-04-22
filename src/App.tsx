@@ -185,29 +185,49 @@ export default function App() {
           {uiVisible && (
             <motion.header 
               initial={{ y: -60 }} animate={{ y: 0 }} exit={{ y: -60 }}
-              className="h-14 border-b border-tactical-border bg-tactical-panel/80 backdrop-blur-md flex items-center justify-between px-6 pl-16 z-20"
+              className="h-16 border-b border-tactical-accent/20 bg-black/60 backdrop-blur-xl flex items-center justify-between px-6 pl-16 z-20"
             >
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-tactical-accent animate-pulse" />
-                  <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-tactical-accent">
-                    Intelligence Loop: {isAnalyzing ? 'Analyzing...' : 'Active'} | Source: {dataSource === 'LIVE' ? 'Cloud' : 'Cache'}
-                  </span>
+              <div className="flex items-center gap-10">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-tactical-accent animate-pulse" />
+                    <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-tactical-accent font-bold">
+                      NORTHWATCH INTEL_CORE // {dataSource}
+                    </span>
+                  </div>
+                  <div className="text-[8px] font-mono text-gray-500 uppercase tracking-widest">
+                    Encryption: AES-256-GCM | Protocol: SITREP-4.1
+                  </div>
                 </div>
+
+                <div className="h-8 w-[1px] bg-tactical-border" />
+
                 <button 
                   onClick={runAIPrediction}
                   disabled={isAnalyzing}
-                  className="flex items-center gap-2 bg-tactical-accent/10 border border-tactical-accent/30 px-3 py-1 text-[9px] font-mono text-tactical-accent hover:bg-tactical-accent/20 transition-all disabled:opacity-50"
+                  className="group relative flex items-center gap-3 bg-black/40 border border-tactical-accent/20 px-4 py-1.5 overflow-hidden transition-all hover:border-tactical-accent/50"
                 >
-                  {isAnalyzing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Brain className="w-3 h-3" />}
-                  REFRESH REGIONAL INTELLIGENCE
+                  <div className="absolute inset-0 bg-tactical-accent/5 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-300" />
+                  {isAnalyzing ? <Loader2 className="w-3.5 h-3.5 animate-spin text-tactical-accent" /> : <Brain className="w-3.5 h-3.5 text-tactical-accent" />}
+                  <span className="text-[9px] font-mono text-tactical-accent uppercase tracking-[0.2em] relative z-10">
+                    {isAnalyzing ? 'UPLOADING_VECTORS...' : 'INITIATE_SITUATION_CRUNCH'}
+                  </span>
                 </button>
               </div>
               
-              <div className="flex items-center gap-4 text-[10px] font-mono text-gray-400 uppercase tracking-widest">
-                <span>Grounding: Google Search</span>
-                <div className="h-4 w-[1px] bg-tactical-border" />
-                <span>{new Date().toLocaleTimeString()} UTC</span>
+              <div className="flex items-center gap-8 font-mono">
+                <div className="text-right">
+                  <div className="text-[10px] text-gray-300 uppercase tracking-tighter letter-spacing-1">
+                    TARGET: <span className="text-tactical-accent">NORTHERN_NIGERIA</span>
+                  </div>
+                  <div className="text-[8px] text-gray-500 uppercase tracking-[0.2em]">
+                    SENSORS: ACTIVE ({heatmapCells.length} NODES)
+                  </div>
+                </div>
+                <div className="h-8 w-[1px] bg-tactical-border" />
+                <div className="text-[11px] text-tactical-accent tracking-[0.1em] font-bold">
+                  {new Date().toLocaleTimeString()} <span className="text-[8px] text-gray-500">ZULU</span>
+                </div>
               </div>
             </motion.header>
           )}
