@@ -3,7 +3,7 @@ import Sidebar from './components/Sidebar';
 import TacticalMap from './components/TacticalMap';
 import TacticalChat from './components/TacticalChat';
 import SignalIntel from './components/SignalIntel';
-import { Eye, EyeOff, Brain, Loader2, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Brain, Loader2, ShieldCheck, AlertCircle, MoreVertical, Globe, Map, Radio, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '@/src/lib/utils';
 import { supabase } from './lib/supabase';
@@ -19,6 +19,8 @@ export default function App() {
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
   const [dataSource, setDataSource] = useState<'LIVE' | 'CACHE'>('LIVE');
   const [isMobile, setIsMobile] = useState(false);
+  const [showSatellite, setShowSatellite] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024);
@@ -224,11 +226,18 @@ export default function App() {
             <motion.header 
               initial={{ y: -60 }} animate={{ y: 0 }} exit={{ y: -60 }}
               className={cn(
-                "border-b border-tactical-accent/20 bg-black/80 backdrop-blur-xl flex items-center justify-between px-4 z-20 transition-all",
-                isMobile ? "h-14 pl-16 pt-0" : "h-16 pl-20"
+                "border-b border-tactical-accent/20 bg-black/80 backdrop-blur-xl flex items-center justify-between px-4 z-[5000] transition-all",
+                isMobile ? "h-14 pl-4 pt-0" : "h-16 pl-4"
               )}
             >
               <div className="flex items-center gap-4 lg:gap-10">
+                <button 
+                  onClick={() => setMenuOpen(!menuOpen)}
+                  className="p-2 hover:bg-tactical-accent/10 border border-transparent hover:border-tactical-accent/30 transition-all text-tactical-accent"
+                >
+                  <MoreVertical className="w-5 h-5" />
+                </button>
+
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-tactical-accent animate-pulse" />
@@ -236,11 +245,6 @@ export default function App() {
                       NORTHWATCH // {dataSource}
                     </span>
                   </div>
-                  {!isMobile && (
-                    <div className="text-[8px] font-mono text-gray-500 uppercase tracking-widest">
-                      Encryption: AES-256-GCM | Protocol: SITREP-4.1
-                    </div>
-                  )}
                 </div>
 
                 {!isMobile && <div className="h-8 w-[1px] bg-tactical-border" />}
@@ -273,83 +277,84 @@ export default function App() {
           )}
         </AnimatePresence>
 
-        <div className="flex-1 relative flex flex-col lg:flex-row min-h-0 overflow-hidden">
+        {/* Tactical Dropdown Menu */}
+        <AnimatePresence>
+          {menuOpen && (
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="absolute top-16 left-4 z-[4500] w-[320px] lg:w-[400px] bg-black/90 backdrop-blur-2xl border border-tactical-border shadow-2xl p-4 overflow-y-auto max-h-[80vh]"
+            >
+              <div className="flex items-center justify-between mb-6 border-b border-tactical-border pb-2">
+                <span className="text-xs font-mono text-tactical-accent tracking-[0.2em] uppercase">Tactical Operations Menu</span>
+                <button onClick={() => setMenuOpen(false)} className="text-gray-500 hover:text-white">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="space-y-8">
+                {/* SETTINGS SECTION */}
+                <div className="space-y-4">
+                  <h4 className="text-[10px] font-mono text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                    <Map className="w-3 h-3" /> Visualization Controls
+                  </h4>
+                  <div className="flex items-center justify-between bg-white/5 p-3 border border-tactical-border">
+                    <div className="space-y-1">
+                      <div className="text-[10px] text-gray-300 uppercase font-bold">High-Res Satellite</div>
+                      <div className="text-[8px] text-gray-500 uppercase">Preserves vegetation & terrain</div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        className="sr-only peer" 
+                        checked={showSatellite}
+                        onChange={() => setShowSatellite(!showSatellite)}
+                      />
+                      <div className="w-9 h-5 bg-tactical-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-tactical-accent"></div>
+                    </label>
+                  </div>
+                </div>
+
+                {/* SENSORS SECTION */}
+                <div className="space-y-4">
+                  <h4 className="text-[10px] font-mono text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                    <Radio className="w-3 h-3" /> Intelligence Feed
+                  </h4>
+                  <SignalIntel reports={intelReports} />
+                </div>
+
+                {/* SECTORS SECTION */}
+                <div className="space-y-4">
+                  <h4 className="text-[10px] font-mono text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                    <Globe className="w-3 h-3" /> National Sectors
+                  </h4>
+                  <div className="max-h-60 overflow-y-auto">
+                    <Sidebar />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="flex-1 relative flex flex-col min-h-0 overflow-hidden">
           {/* Map Section */}
-          <div className={cn("relative flex-1 order-1 lg:order-2", isMobile ? "h-[60vh]" : "h-full")}>
+          <div className={cn("relative flex-1 order-1 lg:order-2 h-full")}>
             <TacticalMap 
               stateThreats={stateThreats} 
               heatmapCells={heatmapCells} 
               hotspots={hotspots}
+              showSatellite={showSatellite}
             />
-
-            {/* In-Map Floating Stats (Mobile and Desktop) */}
-            <AnimatePresence>
-              {uiVisible && !isMobile && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
-                  className="absolute bottom-6 left-6 z-20 pointer-events-none"
-                >
-                  <div className="bg-tactical-panel/60 backdrop-blur-md border border-tactical-border p-4 w-72">
-                    <h4 className="text-[10px] font-mono text-tactical-accent uppercase mb-3 tracking-widest border-b border-tactical-border pb-1">Regional Threat Matrix</h4>
-                    <div className="space-y-2 max-h-48 overflow-y-auto pr-2 pointer-events-auto">
-                      {stateThreats.length === 0 ? (
-                        <div className="text-[9px] text-gray-600 italic">Awaiting AI analysis...</div>
-                      ) : (
-                        stateThreats.sort((a, b) => b.threat_level - a.threat_level).map((state) => (
-                          <div key={state.state_name} className="space-y-1">
-                            <div className="flex justify-between text-[8px] font-mono uppercase text-gray-400">
-                              <span>{state.state_name}</span>
-                              <span className={state.threat_level >= 8 ? "text-tactical-danger" : "text-tactical-warning"}>
-                                {state.threat_level}/10
-                              </span>
-                            </div>
-                            <div className="h-1 w-full bg-tactical-border rounded-full overflow-hidden">
-                              <div 
-                                className={cn("h-full", state.threat_level >= 8 ? "bg-tactical-danger" : "bg-tactical-warning")} 
-                                style={{ width: `${state.threat_level * 10}%` }} 
-                              />
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
           
-          {/* Side Content Panel (Mobile: Scrollable Bottom Hub) */}
+          {/* Tactical Chat remains fixed but accessible */}
           <AnimatePresence>
             {uiVisible && (
-              <motion.div 
-                initial={isMobile ? { y: 300 } : { x: 300 }} 
-                animate={isMobile ? { y: 0 } : { x: 0 }} 
-                exit={isMobile ? { y: 300 } : { x: 300 }}
-                className={cn(
-                  "z-30 flex flex-col gap-4 p-4 min-w-0 transition-all",
-                  isMobile ? "h-[40vh] bg-tactical-panel/90 backdrop-blur-xl border-t border-tactical-border overflow-y-auto" : "w-[400px] h-full overflow-y-auto border-l border-tactical-border bg-tactical-bg"
-                )}
-              >
-                <div className="space-y-6 pb-20 lg:pb-0">
-                  <SignalIntel reports={intelReports} />
-                  <TacticalChat />
-                  
-                  {isMobile && stateThreats.length > 0 && (
-                    <div className="bg-black/40 border border-tactical-border p-4">
-                      <h4 className="text-[10px] font-mono text-tactical-accent uppercase mb-3 tracking-widest border-b border-tactical-border pb-1">Mobile Matrix</h4>
-                      <div className="grid grid-cols-2 gap-x-6 gap-y-3">
-                         {stateThreats.slice(0, 8).sort((a, b) => b.threat_level - a.threat_level).map((state) => (
-                           <div key={state.state_name} className="flex justify-between items-center text-[9px] font-mono truncate">
-                             <span className="text-gray-400 truncate mr-2">{state.state_name}</span>
-                             <span className={state.threat_level >= 8 ? "text-tactical-danger" : "text-tactical-warning font-bold"}>{state.threat_level}/10</span>
-                           </div>
-                         ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
+              <div className="absolute bottom-4 right-4 z-40 w-full sm:w-auto px-4 sm:px-0">
+                <TacticalChat />
+              </div>
             )}
           </AnimatePresence>
         </div>

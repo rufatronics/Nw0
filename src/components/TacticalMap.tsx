@@ -47,6 +47,7 @@ interface TacticalMapProps {
   stateThreats: StateThreatData[];
   heatmapCells: HeatmapCell[];
   hotspots?: Hotspot[];
+  showSatellite?: boolean;
 }
 
 const REGIONS = [
@@ -62,7 +63,8 @@ export default function TacticalMap({
   zoom = 6,
   stateThreats = [],
   heatmapCells = [],
-  hotspots = []
+  hotspots = [],
+  showSatellite = false
 }: TacticalMapProps) {
   console.log(`TacticalMap rendering with ${heatmapCells.length} heatmap cells.`);
 
@@ -123,10 +125,17 @@ export default function TacticalMap({
         zoomControl={false}
         className="w-full h-full"
       >
-        <TileLayer
-          attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-          url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-        />
+        {showSatellite ? (
+          <TileLayer
+            attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+          />
+        ) : (
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          />
+        )}
 
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] flex gap-4 pointer-events-none">
           <div className="bg-black/60 backdrop-blur-md border border-tactical-accent/20 px-3 py-1 flex items-center gap-2">
