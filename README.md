@@ -1,20 +1,35 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# NORTHWATCH TACTICAL // NATIONAL AI DANGER PLATFORM
 
-# Run and deploy your AI Studio app
+Northwatch is a high-fidelity geospatial intelligence platform designed for predictive threat analysis and situational awareness across Nigeria. Built for regional security mandates, it integrates real-time signals, terrain analysis, and AI-driven predictive modeling.
 
-This contains everything you need to run your app locally.
+## 📡 Core Intelligence Features
 
-View your app in AI Studio: https://ai.studio/apps/9553ee15-ab83-4895-a193-fb434a474a08
+- **National AI Grid**: A 5,400+ point density mesh mapping danger vectors across all 37 sectors (36 states + FCT).
+- **Predictive Hotspots**: AI-identified "Critical Flashpoints" with pulsing circular HUD markers and tactical reasoning sitreps.
+- **Signal Intel (SIGINT)**: Live feed of intelligence reports, classified by threat level (Critical, Warning, Stable).
+- **Terrain-Aware GIS**: 
+  - **Tactical Mode**: High-contrast Dark Matter mode for structural clarity.
+  - **Satellite Mode**: High-res Esri World Imagery for vegetation and topography analysis (Sambisa, Northwest Forests, Delta Creeks).
 
-## Run Locally
+## 🛠 Technical Stack
 
-**Prerequisites:**  Node.js
+- **Framework**: React 18 + Vite (TypeScript)
+- **Geospatial**: Leaflet / React-Leaflet
+- **Styling**: Tailwind CSS (Tactical HUD Aesthetic)
+- **Animation**: Framer Motion (HUD Transitions & Scanlines)
+- **Real-time**: Supabase (Postgres Changes)
+- **AI Integration**: Custom Predictive Reasoning Engine
 
+## 📱 Mobile-First Optimization
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+Optimized specifically for the Nigerian smart-device market:
+- **Responsive HUD**: Dynamic header and drawer-based menus.
+- **Performance Grids**: Optimized Leaflet rendering for low-to-mid-range hardware.
+- **Adaptive Control Panel**: Unified "Three-Dot" operations menu to maximize map real estate on mobile screens.
+
+## 🚀 Vision
+
+To provide federal and regional security stakeholders with a unified, predictive operating picture that transitions from reactive reporting to proactive intervention.
+
+---
+**Protocol**: SITREP-4.1 | **Encryption**: AES-256-GCM

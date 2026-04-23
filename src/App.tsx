@@ -10,6 +10,15 @@ import { supabase } from './lib/supabase';
 import { StateThreatData, HeatmapCell, IntelReport, RegionalHeatmap, Hotspot } from './types';
 import tacticalStaticData from './data/tactical_db.json';
 
+/**
+ * Main Application Component (Northwatch Tactical)
+ * 
+ * Orchestrates the tactical intelligence dashboard, handling:
+ * 1. Real-time Supabase data synchronization for threats and reports.
+ * 2. Responsive UI state management (Mobile vs Desktop).
+ * 3. AI Prediction orchestration.
+ * 4. Modular HUD and Map rendering.
+ */
 export default function App() {
   const [uiVisible, setUiVisible] = useState(true);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -22,6 +31,10 @@ export default function App() {
   const [showSatellite, setShowSatellite] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  /**
+   * Device Detection
+   * Monitors viewport width to adapt UI for Nigerian mobile usage.
+   */
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024);
     checkMobile();
@@ -29,7 +42,10 @@ export default function App() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // 1. Initial Fetch and Real-time listener for State Threats
+  /**
+   * State Threat Data Pipeline
+   * Synchronizes with 'state_threats' table for live regional monitoring.
+   */
   useEffect(() => {
     const fetchStateThreats = async () => {
       try {
@@ -77,7 +93,10 @@ export default function App() {
     };
   }, []);
 
-  // 2. Initial Fetch and Real-time listener for Intel Reports
+  /**
+   * Signal Intelligence Pipeline (SIGINT)
+   * Monitors 'intel_reports' for real-time field data and classified sitreps.
+   */
   useEffect(() => {
     const fetchIntelReports = async () => {
       try {
@@ -116,7 +135,10 @@ export default function App() {
     };
   }, []);
 
-  // 3. Initial Fetch and Real-time listener for Regional Heatmaps
+  /**
+   * Geospatial Heatmap Pipeline
+   * Synchronizes regional danger grid cells for high-fidelity terrain visualization.
+   */
   useEffect(() => {
     const fetchHeatmaps = async () => {
       try {
@@ -156,7 +178,10 @@ export default function App() {
     };
   }, []);
 
-  // 4. Hotspots (Predictive Danger Zones)
+  /**
+   * AI Predictive Engine Sync
+   * Loads high-priority predictive danger zones (Hotspots) from static or live intelligence caches.
+   */
   useEffect(() => {
     if (dataSource === 'CACHE') {
       setHotspots((tacticalStaticData as any).hotspots || []);

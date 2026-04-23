@@ -57,9 +57,24 @@ const REGIONS = [
   { bounds: { minLat: 6.5, maxLat: 10.5, minLng: 7.0, maxLng: 11.0 } }
 ];
 
+/**
+ * TacticalMap Component
+ * 
+ * Provides a high-fidelity geospatial intelligence interface using Leaflet.
+ * Supports dual-mode visualization:
+ * 1. Dark Matter (Standard): High-contrast tactical mode for urban/structural analysis.
+ * 2. Satellite (Terrain): High-res terrain-aware mode for vegetation and topography analysis.
+ */
 export default function TacticalMap({ 
+/**
+ * @param {TacticalMapProps} props
+ * @param {StateThreatData[]} props.stateThreats - Array of threat data by state
+ * @param {HeatmapCell[]} props.heatmapCells - National 5000+ point danger grid
+ * @param {Hotspot[]} props.hotspots - High-priority predictive danger zones
+ * @param {boolean} props.showSatellite - Toggle for Satellite vs Dark mode
+ */
   className, 
-  center = [9.0820, 8.6753], // Center of Nigeria
+  center = [9.0820, 8.6753], // Geodetic center of Nigeria
   zoom = 6,
   stateThreats = [],
   heatmapCells = [],
@@ -68,13 +83,16 @@ export default function TacticalMap({
 }: TacticalMapProps) {
   console.log(`TacticalMap rendering with ${heatmapCells.length} heatmap cells.`);
 
-  // Generate a base grid of "Safe" cells if no data is present
+  /**
+   * Base Grid Memoization
+   * Used for fallback visualization if the dynamic grid is loading or unavailable.
+   */
   const baseGrid = React.useMemo(() => {
     if (heatmapCells.length > 0) return [];
     
     const cells: HeatmapCell[] = [];
     REGIONS.forEach(region => {
-      for (let lat = region.bounds.minLat; lat <= region.bounds.maxLat; lat += 0.5) { // Using 0.5 for base grid to avoid performance lag
+      for (let lat = region.bounds.minLat; lat <= region.bounds.maxLat; lat += 0.5) {
         for (let lng = region.bounds.minLng; lng <= region.bounds.maxLng; lng += 0.5) {
           cells.push({ lat, lng, level: 1 });
         }
@@ -85,35 +103,22 @@ export default function TacticalMap({
 
   const displayCells = heatmapCells.length > 0 ? heatmapCells : baseGrid;
   
+  /**
+   * Color Mapping Functions
+   * Translates danger levels (1-10) into Tactical RGB values.
+   */
   const getThreatColor = (level: number) => {
-    if (level >= 8) return '#FF2079'; // Dangerous (Hot Pink)
-    if (level >= 4) return '#FFB300'; // Moderate (Amber)
-    return '#00BFFF'; // Safe (Cyan)
+    if (level >= 8) return '#FF2079'; // CRITICAL_DANGER
+    if (level >= 4) return '#FFB300'; // MODERATE_THREAT
+    return '#00BFFF'; // STABLE_ZONE
   };
 
   const getHeatmapColor = (level: number) => {
-    if (level >= 8) return '#FF2079'; // Dangerous
-    if (level >= 6) return '#FF2079'; // High (using Dangerous color as requested)
-    if (level >= 4) return '#FFB300'; // Moderate
-    if (level >= 3) return '#FFB300'; // Calculated Risk (using Moderate color)
-    return '#00BFFF'; // Safe Zone
-  };
-
-  // Helper to create hexagon points
-  const getHexPoints = (lat: number, lng: number, size: number): [number, number][] => {
-    const points: [number, number][] = [];
-    for (let i = 0; i < 6; i++) {
-      const angle_deg = 60 * i + 30; // Pointy-top hex
-      const angle_rad = (Math.PI / 180) * angle_deg;
-      // Latitude is roughly 111km per degree. 
-      // Longitude varies by cos(lat), but at ~10N it is roughly 109km.
-      // We use a small approximation for the hex shape.
-      points.push([
-        lat + size * Math.sin(angle_rad),
-        lng + size * Math.cos(angle_rad) * 1.1 // Adjust for aspect ratio
-      ]);
-    }
-    return points;
+    if (level >= 8) return '#FF2079';
+    if (level >= 6) return '#FF2079';
+    if (level >= 4) return '#FFB300';
+    if (level >= 3) return '#FFB300';
+    return '#00BFFF';
   };
 
   return (
@@ -125,6 +130,7 @@ export default function TacticalMap({
         zoomControl={false}
         className="w-full h-full"
       >
+        {/* Layer Toggle logic: Satellite vs Dark Matter */}
         {showSatellite ? (
           <TileLayer
             attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
@@ -137,6 +143,7 @@ export default function TacticalMap({
           />
         )}
 
+        {/* Tactical Coordinates HUD (Centered Overlay) */}
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] flex gap-4 pointer-events-none">
           <div className="bg-black/60 backdrop-blur-md border border-tactical-accent/20 px-3 py-1 flex items-center gap-2">
             <span className="text-[8px] font-mono text-tactical-accent uppercase tracking-widest">Lat: {center[0].toFixed(4)}N</span>
@@ -145,7 +152,7 @@ export default function TacticalMap({
           </div>
         </div>
 
-        {/* Tactical Crosshair Overlay */}
+        {/* Reticle Overlay: Visual reference for the user */}
         <div className="absolute inset-0 z-[1000] pointer-events-none flex items-center justify-center">
           <div className="relative w-48 h-48">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1px] h-4 bg-tactical-accent/40" />
@@ -156,7 +163,7 @@ export default function TacticalMap({
           </div>
         </div>
         
-        {/* Tactical Rectangular Grid Heatmap */}
+        {/* National 5000+ Point Danger Grid */}
         {displayCells.map((cell, idx) => {
           if (typeof cell.lat !== 'number' || typeof cell.lng !== 'number') return null;
           const isBaseGrid = heatmapCells.length === 0;
@@ -184,7 +191,7 @@ export default function TacticalMap({
           );
         })}
 
-        {/* Predictive Danger Hotspots (HUD Circular Style) */}
+        {/* Predictive AI Hotspots: Highlight areas requiring immediate intervention */}
         {hotspots.map((spot) => (
           <React.Fragment key={spot.id}>
             <Circle
@@ -219,7 +226,7 @@ export default function TacticalMap({
           </React.Fragment>
         ))}
 
-        {/* State Markers and Threat Zones */}
+        {/* State-Level Threat Aggregation Markers */}
         {stateThreats.map((state) => {
           const coords = STATE_COORDINATES[state.state_name];
           if (!coords) return null;
@@ -228,7 +235,7 @@ export default function TacticalMap({
             <React.Fragment key={state.state_name}>
               <Circle 
                 center={coords} 
-                radius={40000} // 40km radius for state-level visualization
+                radius={40000} 
                 pathOptions={{ 
                   fillColor: getThreatColor(state.threat_level), 
                   fillOpacity: 0.1, 
@@ -268,18 +275,6 @@ export default function TacticalMap({
           );
         })}
       </MapContainer>
-
-      {/* Map HUD Elements */}
-      <div className="absolute top-4 right-4 z-[1000] flex flex-col gap-2 pointer-events-none">
-        <div className="bg-tactical-panel/80 backdrop-blur-md border border-tactical-border p-3 font-mono text-[10px] uppercase tracking-widest text-tactical-accent">
-          <div className="flex justify-between gap-4">
-            <span>REGION: NORTHERN NIGERIA</span>
-            <span>STATES: 19</span>
-          </div>
-          <div className="mt-1 opacity-60">AI GROUNDING: GOOGLE SEARCH ACTIVE</div>
-          <div className="mt-1 text-[8px] text-tactical-danger animate-pulse">HEATMAP: 10KM TERRAIN GRID ACTIVE</div>
-        </div>
-      </div>
     </div>
   );
 }
