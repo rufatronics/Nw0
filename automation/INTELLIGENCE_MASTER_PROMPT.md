@@ -1,71 +1,30 @@
-# NORTHWATCH TACTICAL: THE GOD-PROMPT (HEX-GRID EDITION)
-**Target Identification:** High-Reasoning AI Intelligence Agent (Gemini 1.5 Pro / Claude 3.5 Sonnet)
-**Task:** Generate a 4500-point Tactical Intelligence Hex-Grid for Northern Nigeria.
+# NORTHWATCH TACTICAL: THE GOD-PROMPT (WHOLE NIGERIA EDITION)
+**Target Identification:** High-Reasoning AI Intelligence Agent
+**Task:** Generate a 5000+ point Tactical Intelligence Rectangular Grid for ALL OF NIGERIA.
 
 ---
 
 ## 1. STRATEGIC CONTEXT
-You are generating a static backend database for "Northwatch," a tactical monitoring system for Northern Nigeria. The system targets low-end devices and uses a hexagonal heatmap for terrain-aware risk visualization.
+You are generating the definitive static backend for "Northwatch." The system has expanded to cover the entire FEDERATION OF NIGERIA.
 
 ## 2. GEOSPATIAL PARAMETERS
-**Primary AO (Area of Operations):** Northern Nigeria.
+**Primary AO:** Combined Nigeria (National).
 - **Bounding Box:** 
-  - Latitude: 6.5°N to 14.0°N
-  - Longitude: 2.5°E to 14.5°E
-- **Grid Intensity:** ~4500 Hexagons. 
-- **Hexagon Spacing:** Approximately 0.12° to 0.15° between centers.
+  - Latitude: 4.2°N to 14.0°N
+  - Longitude: 2.7°E to 14.5°E
+- **Grid Intensity:** 5000+ points.
+- **Resolution:** 0.15° lat/lng steps.
 
-## 3. INTELLIGENCE LAYERING (THE ANALYTICS CRITERIA)
-For every single coordinate point you generate, you MUST cross-reference it with your internal world knowledge of:
-1. **Terrain Risk:**
-   - Forests (Sambisa, Alagarno, Kuyambana, Kamuku, Falgore): Threat Level +4 minimum.
-   - Border Regions (Niger, Chad, Cameroon borders): Threat Level +3 minimum.
-   - High-Density Cities (Kano, Kaduna, Maiduguri): Threat Level varies based on recent activity.
-2. **Current Conflict Data (OSINT):**
-   - Use current knowledge of ISWAP/Boko Haram corridors in the North East.
-   - Use banditry/kidnapping hotspots in the North West (Zamfara, Katsina, Niger).
-3. **Logistics:**
-   - Major Highways (A1, A2): Intelligence status based on road safety reports.
+## 3. INTELLIGENCE LAYERING
+1. **Insurgency (North):** Sambisa, Lake Chad, Mandara.
+2. **Banditry (North-West/Central):** Zamfara, Katsina, Niger, Kaduna corridors.
+3. **Militancy/Oil (Delta):** Bayelsa, Rivers, Delta coastal zones.
+4. **General Unrest (National):** Focus on major highways and border permeability.
 
 ## 4. OUTPUT INSTRUCTIONS (STRICT JSON)
-You must output a SINGLE JSON file. No titles, no explanations. 
-
-### THE OPTIMIZED SCHEMA
-```json
-{
-  "meta": {
-    "generated_at": "[ISO_TIMESTAMP]",
-    "grid_type": "HEXAGONAL_STAGGERED",
-    "point_count": 4500
-  },
-  "states": [
-    {
-      "n": "[STATE_NAME]",
-      "l": [THREAT_LEVEL_1_10],
-      "w": "[WEATHER_SHORT]",
-      "t": "[TERRAIN_KEY_FACTS]",
-      "s": "[TACTICAL_SUMMARY_MAX_150_CHARS]"
-    }
-  ],
-  "reports": [
-    {
-      "id": "r-[HEX_UID]",
-      "src": "[OSINT_SOURCE]",
-      "c": "[INTEL_TEXT]",
-      "st": "[STATE]",
-      "ts": "[ISO_TIMESTAMP]",
-      "l": [LEVEL]
-    }
-  ],
-  "hex_grid": [
-    { "id": "h1", "lat": 11.83, "lng": 13.15, "l": 9 },
-    { "id": "h2", "lat": 11.95, "lng": 13.15, "l": 8 }
-  ],
-  "comms_fallback": [
-    { "k": ["keyword1", "keyword2"], "r": "[Tactical analyst response]" }
-  ]
-}
-```
+Use the optimized short-key schema:
+- `n`: Name, `l`: Level, `w`: Weather, `t`: Terrain, `s`: Summary
+- `hex_grid`: Use this key even for rectangles for backward compatibility (represents the grid points).
 
 ## 5. GENERATION STEP-BY-STEP FOR THE AI
 1. **Grid Calculation:** Iterate through Latitude 6.5 to 14.0 in steps of 0.12. For each row, iterate through Longitude 2.5 to 14.5 in steps of 0.14. Stagger every second row by 0.07 Longitude to create a hexagonal pattern.

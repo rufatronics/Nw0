@@ -57,7 +57,7 @@ const REGIONS = [
 
 export default function TacticalMap({ 
   className, 
-  center = [10.0000, 8.5000], // Center of Northern Nigeria
+  center = [9.0820, 8.6753], // Center of Nigeria
   zoom = 6,
   stateThreats = [],
   heatmapCells = []
@@ -122,8 +122,8 @@ export default function TacticalMap({
         className="w-full h-full"
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
         />
 
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] flex gap-4 pointer-events-none">
@@ -145,25 +145,24 @@ export default function TacticalMap({
           </div>
         </div>
         
-        {/* Hexagonal Tactical Grid Heatmap */}
+        {/* Tactical Rectangular Grid Heatmap */}
         {displayCells.map((cell, idx) => {
           if (typeof cell.lat !== 'number' || typeof cell.lng !== 'number') return null;
           const isBaseGrid = heatmapCells.length === 0;
-          
-          // Tactical Visualization Logic
           const isHighThreat = cell.level >= 8;
           const isModerate = cell.level >= 4 && cell.level < 8;
           
-          const hexSize = isBaseGrid ? 0.2 : 0.08; 
-          const hexPoints = getHexPoints(cell.lat, cell.lng, hexSize);
+          const step = isBaseGrid ? 0.15 : 0.08; 
 
           return (
-            <Polygon
-              key={`hex-${idx}`}
-              positions={hexPoints}
+            <Rectangle
+              key={`rect-${idx}`}
+              bounds={[
+                [cell.lat - step, cell.lng - step],
+                [cell.lat + step, cell.lng + step]
+              ]}
               pathOptions={{
                 fillColor: getHeatmapColor(cell.level),
-                // Only high threat gets significant fill. Safe hexes are barely visible wireframes.
                 fillOpacity: isHighThreat ? 0.4 : isModerate ? 0.15 : 0.02,
                 color: isHighThreat ? '#FF2079' : isModerate ? '#FFB300' : 'rgba(0, 191, 255, 0.1)',
                 weight: isHighThreat ? 1 : 0.3,

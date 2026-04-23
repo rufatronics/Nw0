@@ -218,7 +218,7 @@ export default function App() {
               <div className="flex items-center gap-8 font-mono">
                 <div className="text-right">
                   <div className="text-[10px] text-gray-300 uppercase tracking-tighter letter-spacing-1">
-                    TARGET: <span className="text-tactical-accent">NORTHERN_NIGERIA</span>
+                    TARGET: <span className="text-tactical-accent">NATIONAL_NIGERIA</span>
                   </div>
                   <div className="text-[8px] text-gray-500 uppercase tracking-[0.2em]">
                     SENSORS: ACTIVE ({heatmapCells.length} NODES)
