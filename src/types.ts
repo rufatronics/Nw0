@@ -14,6 +14,15 @@ export interface HeatmapCell {
   level: number;
 }
 
+export interface Hotspot {
+  id: string;
+  lat: number;
+  lng: number;
+  label: string;
+  threat: number;
+  reason: string;
+}
+
 export interface RegionalHeatmap {
   id?: string;
   region_name: string;

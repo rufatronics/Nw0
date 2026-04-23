@@ -7,7 +7,7 @@ import { Eye, EyeOff, Brain, Loader2, ShieldCheck, AlertCircle } from 'lucide-re
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '@/src/lib/utils';
 import { supabase } from './lib/supabase';
-import { StateThreatData, HeatmapCell, IntelReport, RegionalHeatmap } from './types';
+import { StateThreatData, HeatmapCell, IntelReport, RegionalHeatmap, Hotspot } from './types';
 import tacticalStaticData from './data/tactical_db.json';
 
 export default function App() {
@@ -16,6 +16,7 @@ export default function App() {
   const [stateThreats, setStateThreats] = useState<StateThreatData[]>([]);
   const [intelReports, setIntelReports] = useState<IntelReport[]>([]);
   const [heatmapCells, setHeatmapCells] = useState<HeatmapCell[]>([]);
+  const [hotspots, setHotspots] = useState<Hotspot[]>([]);
   const [dataSource, setDataSource] = useState<'LIVE' | 'CACHE'>('LIVE');
 
   // 1. Initial Fetch and Real-time listener for State Threats
@@ -145,6 +146,17 @@ export default function App() {
     };
   }, []);
 
+  // 4. Hotspots (Predictive Danger Zones)
+  useEffect(() => {
+    if (dataSource === 'CACHE') {
+      setHotspots((tacticalStaticData as any).hotspots || []);
+    } else {
+      // In a real live app we'd fetch from supabase, 
+      // but for now we follow the user's focus on the static DB for this turn
+      setHotspots((tacticalStaticData as any).hotspots || []);
+    }
+  }, [dataSource]);
+
   const runAIPrediction = async () => {
     if (isAnalyzing) return;
     setIsAnalyzing(true);
@@ -234,7 +246,11 @@ export default function App() {
         </AnimatePresence>
 
         <div className="flex-1 relative">
-          <TacticalMap stateThreats={stateThreats} heatmapCells={heatmapCells} />
+          <TacticalMap 
+            stateThreats={stateThreats} 
+            heatmapCells={heatmapCells} 
+            hotspots={hotspots}
+          />
           
           <AnimatePresence>
             {uiVisible && (

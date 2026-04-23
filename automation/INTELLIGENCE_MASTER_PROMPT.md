@@ -1,30 +1,53 @@
-# NORTHWATCH TACTICAL: THE GOD-PROMPT (WHOLE NIGERIA EDITION)
+# NORTHWATCH TACTICAL: THE GOD-PROMPT (NATIONAL PREDICTIVE EDITION)
 **Target Identification:** High-Reasoning AI Intelligence Agent
-**Task:** Generate a 5000+ point Tactical Intelligence Rectangular Grid for ALL OF NIGERIA.
+**Task:** Generate a 5000+ point National Danger Prediction Grid and 20 Critical Hotspots.
 
 ---
 
 ## 1. STRATEGIC CONTEXT
-You are generating the definitive static backend for "Northwatch." The system has expanded to cover the entire FEDERATION OF NIGERIA.
+You are the predictive engine for "Northwatch," a national security platform protecting 200M+ citizens across Nigeria. Your role is NOT just reporting current data but PREDICTING where danger manifests based on terrain, seasonal factors, and geopolitical shifts.
 
 ## 2. GEOSPATIAL PARAMETERS
-**Primary AO:** Combined Nigeria (National).
+**Primary AO:** National Nigeria (Federal).
 - **Bounding Box:** 
-  - Latitude: 4.2°N to 14.0°N
-  - Longitude: 2.7°E to 14.5°E
-- **Grid Intensity:** 5000+ points.
+  - Latitude: 4.0°N to 14.1°N
+  - Longitude: 2.6°E to 14.6°E
+- **Grid Intensity:** 5000+ points in a Rectangular Mesh.
 - **Resolution:** 0.15° lat/lng steps.
 
-## 3. INTELLIGENCE LAYERING
-1. **Insurgency (North):** Sambisa, Lake Chad, Mandara.
-2. **Banditry (North-West/Central):** Zamfara, Katsina, Niger, Kaduna corridors.
-3. **Militancy/Oil (Delta):** Bayelsa, Rivers, Delta coastal zones.
-4. **General Unrest (National):** Focus on major highways and border permeability.
+## 3. PREDICTIVE LOGIC (THE "DANGER" VECTORS)
+Your grid points (`l` values) must reflect the following:
+1. **The Sambisa-Lake Chad Axis:** High density of ISWAP activity.
+2. **The NW Forests:** Bandits using Kuyambana, Kamuku, and Rugu forests as hideouts.
+3. **The Gulf of Guinea Segment:** Predictive risk of piracy/militancy in the Delta creeks.
+4. **The Central Belt:** Farmer-Herder seasonal migration conflict zones.
+5. **Urban Vulnerability:** Flashpoint risks in major hubs (Lagos, Abuja, Port Harcourt).
 
-## 4. OUTPUT INSTRUCTIONS (STRICT JSON)
-Use the optimized short-key schema:
-- `n`: Name, `l`: Level, `w`: Weather, `t`: Terrain, `s`: Summary
-- `hex_grid`: Use this key even for rectangles for backward compatibility (represents the grid points).
+## 4. CRITICAL HOTSPOTS (MANDATORY 20)
+You MUST identify exactly 20 "Critical Hotspots" where predictive danger is at its peak.
+For each hotspot, provide:
+- `label`: Compact name (e.g., "SAMBISA_CORE", "DELTA_CREEK_V5")
+- `threat`: Integer 8-10.
+- `reason`: Concise tactical justification for the prediction.
+
+## 5. OUTPUT SCHEMA (SHORT-KEY JSON)
+```json
+{
+  "meta": {
+    "generated_at": "[ISO]",
+    "grid_type": "RECTANGULAR_NATIONAL_PREDICTIVE",
+    "point_count": [COUNT]
+  },
+  "states": [{ "n": "[NAME]", "l": [1-10], "w": "[WEATHER]", "t": "[TERRAIN]", "s": "[SUMMARY]" }],
+  "hex_grid": [{ "id": "g[#]", "lat": [LAT], "lng": [LNG], "l": [INT] }],
+  "hotspots": [{ "id": "s[#]", "lat": [LAT], "lng": [LNG], "label": "[NAME]", "threat": [8-10], "reason": "[WHY]" }],
+  "comms_fallback": [{ "k": ["kw1", "kw2"], "r": "[SNIPPET]" }]
+}
+```
+"hex_grid" MUST be used as the key for the main points for compatibility.
+
+## 6. GENERATION
+Proceed now. Generate the full national grid and exactly 20 hotspots within the defined bounding box.
 
 ## 5. GENERATION STEP-BY-STEP FOR THE AI
 1. **Grid Calculation:** Iterate through Latitude 6.5 to 14.0 in steps of 0.12. For each row, iterate through Longitude 2.5 to 14.5 in steps of 0.14. Stagger every second row by 0.07 Longitude to create a hexagonal pattern.

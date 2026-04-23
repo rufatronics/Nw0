@@ -2,7 +2,7 @@ import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polygon, Circle, Rectangle } from 'react-leaflet';
 import L from 'leaflet';
 import { cn } from '@/src/lib/utils';
-import { StateThreatData, HeatmapCell } from '../types';
+import { StateThreatData, HeatmapCell, Hotspot } from '../types';
 
 // Fix for default marker icons in Leaflet
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -46,6 +46,7 @@ interface TacticalMapProps {
   zoom?: number;
   stateThreats: StateThreatData[];
   heatmapCells: HeatmapCell[];
+  hotspots?: Hotspot[];
 }
 
 const REGIONS = [
@@ -60,7 +61,8 @@ export default function TacticalMap({
   center = [9.0820, 8.6753], // Center of Nigeria
   zoom = 6,
   stateThreats = [],
-  heatmapCells = []
+  heatmapCells = [],
+  hotspots = []
 }: TacticalMapProps) {
   console.log(`TacticalMap rendering with ${heatmapCells.length} heatmap cells.`);
 
@@ -172,6 +174,41 @@ export default function TacticalMap({
             />
           );
         })}
+
+        {/* Predictive Danger Hotspots (HUD Circular Style) */}
+        {hotspots.map((spot) => (
+          <React.Fragment key={spot.id}>
+            <Circle
+              center={[spot.lat, spot.lng]}
+              radius={35000}
+              pathOptions={{
+                fillColor: 'transparent',
+                color: '#FF2079',
+                weight: 1,
+                dashArray: '5, 10',
+                className: 'animate-pulse'
+              }}
+            />
+            <Circle
+              center={[spot.lat, spot.lng]}
+              radius={8000}
+              pathOptions={{
+                fillColor: '#FF2079',
+                fillOpacity: 0.4,
+                color: '#FF2079',
+                weight: 2
+              }}
+            >
+              <Popup>
+                <div className="bg-tactical-panel p-2 border border-tactical-danger text-tactical-danger font-mono text-[9px] uppercase tracking-widest">
+                  <div className="font-bold border-b border-tactical-danger mb-1">CRITICAL_PREDICTION: {spot.label}</div>
+                  <div>Threat Index: {spot.threat}/10</div>
+                  <div className="text-gray-400 mt-1 leading-tight">{spot.reason}</div>
+                </div>
+              </Popup>
+            </Circle>
+          </React.Fragment>
+        ))}
 
         {/* State Markers and Threat Zones */}
         {stateThreats.map((state) => {
