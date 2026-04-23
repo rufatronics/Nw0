@@ -9,7 +9,7 @@ interface SignalIntelProps {
 
 export default function SignalIntel({ reports }: SignalIntelProps) {
   return (
-    <div className="absolute top-20 left-6 z-20 w-72 pointer-events-none">
+    <div className="w-full">
       <div className="bg-tactical-panel/80 backdrop-blur-md border border-tactical-border p-4">
         <div className="flex items-center justify-between mb-4 border-b border-tactical-border pb-2">
           <h4 className="text-[10px] font-mono text-tactical-accent uppercase tracking-widest">Signal Intelligence</h4>

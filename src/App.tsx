@@ -18,6 +18,14 @@ export default function App() {
   const [heatmapCells, setHeatmapCells] = useState<HeatmapCell[]>([]);
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
   const [dataSource, setDataSource] = useState<'LIVE' | 'CACHE'>('LIVE');
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // 1. Initial Fetch and Real-time listener for State Threats
   useEffect(() => {
@@ -179,93 +187,111 @@ export default function App() {
       {/* UI Toggle Button */}
       <button 
         onClick={() => setUiVisible(!uiVisible)}
-        className="fixed top-4 left-4 z-[3000] w-10 h-10 bg-tactical-panel border border-tactical-border flex items-center justify-center text-tactical-accent hover:bg-tactical-accent hover:text-black transition-all"
+        className="fixed top-4 left-4 z-[5000] w-10 h-10 bg-tactical-panel/90 backdrop-blur-md border border-tactical-border flex items-center justify-center text-tactical-accent hover:bg-tactical-accent hover:text-black transition-all rounded-sm shadow-xl"
       >
         {uiVisible ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
       </button>
 
       <AnimatePresence>
         {uiVisible && (
-          <motion.div initial={{ x: -300 }} animate={{ x: 0 }} exit={{ x: -300 }} className="z-30 h-full">
-            <Sidebar />
+          <motion.div 
+            initial={{ x: -300 }} 
+            animate={{ x: 0 }} 
+            exit={{ x: -300 }} 
+            className={cn(
+              "z-[4000] h-full",
+              isMobile ? "fixed inset-0 w-72 bg-tactical-bg shadow-2xl" : "relative"
+            )}
+          >
+            <div className="h-full relative pt-16">
+               <Sidebar />
+               {isMobile && (
+                 <button 
+                   onClick={() => setUiVisible(false)}
+                   className="absolute top-4 right-4 text-gray-500"
+                 >
+                   <EyeOff className="w-5 h-5" />
+                 </button>
+               )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
       
-      <main className="flex-1 relative flex flex-col">
+      <main className="flex-1 relative flex flex-col min-w-0 min-h-0 h-full">
         <AnimatePresence>
           {uiVisible && (
             <motion.header 
               initial={{ y: -60 }} animate={{ y: 0 }} exit={{ y: -60 }}
-              className="h-16 border-b border-tactical-accent/20 bg-black/60 backdrop-blur-xl flex items-center justify-between px-6 pl-16 z-20"
+              className={cn(
+                "border-b border-tactical-accent/20 bg-black/80 backdrop-blur-xl flex items-center justify-between px-4 z-20 transition-all",
+                isMobile ? "h-14 pl-16 pt-0" : "h-16 pl-20"
+              )}
             >
-              <div className="flex items-center gap-10">
-                <div className="space-y-1">
+              <div className="flex items-center gap-4 lg:gap-10">
+                <div className="space-y-0.5">
                   <div className="flex items-center gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-tactical-accent animate-pulse" />
-                    <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-tactical-accent font-bold">
-                      NORTHWATCH INTEL_CORE // {dataSource}
+                    <span className="text-[9px] lg:text-[10px] font-mono uppercase tracking-[0.2em] lg:tracking-[0.3em] text-tactical-accent font-bold truncate max-w-[120px] lg:max-w-none">
+                      NORTHWATCH // {dataSource}
                     </span>
                   </div>
-                  <div className="text-[8px] font-mono text-gray-500 uppercase tracking-widest">
-                    Encryption: AES-256-GCM | Protocol: SITREP-4.1
-                  </div>
+                  {!isMobile && (
+                    <div className="text-[8px] font-mono text-gray-500 uppercase tracking-widest">
+                      Encryption: AES-256-GCM | Protocol: SITREP-4.1
+                    </div>
+                  )}
                 </div>
 
-                <div className="h-8 w-[1px] bg-tactical-border" />
+                {!isMobile && <div className="h-8 w-[1px] bg-tactical-border" />}
 
                 <button 
                   onClick={runAIPrediction}
                   disabled={isAnalyzing}
-                  className="group relative flex items-center gap-3 bg-black/40 border border-tactical-accent/20 px-4 py-1.5 overflow-hidden transition-all hover:border-tactical-accent/50"
+                  className="group relative flex items-center gap-2 lg:gap-3 bg-black/40 border border-tactical-accent/20 px-3 lg:px-4 py-1 lg:py-1.5 overflow-hidden transition-all hover:border-tactical-accent/50"
                 >
                   <div className="absolute inset-0 bg-tactical-accent/5 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-300" />
-                  {isAnalyzing ? <Loader2 className="w-3.5 h-3.5 animate-spin text-tactical-accent" /> : <Brain className="w-3.5 h-3.5 text-tactical-accent" />}
-                  <span className="text-[9px] font-mono text-tactical-accent uppercase tracking-[0.2em] relative z-10">
-                    {isAnalyzing ? 'UPLOADING_VECTORS...' : 'INITIATE_SITUATION_CRUNCH'}
+                  {isAnalyzing ? <Loader2 className="w-3 h-3 lg:w-3.5 lg:h-3.5 animate-spin text-tactical-accent" /> : <Brain className="w-3 h-3 lg:w-3.5 lg:h-3.5 text-tactical-accent" />}
+                  <span className="text-[8px] lg:text-[9px] font-mono text-tactical-accent uppercase tracking-[0.1em] lg:tracking-[0.2em] relative z-10">
+                    {isAnalyzing ? (isMobile ? 'SYNC' : 'UPLOADING_VECTORS...') : (isMobile ? 'CRUNCH' : 'INITIATE_SITUATION_CRUNCH')}
                   </span>
                 </button>
               </div>
               
-              <div className="flex items-center gap-8 font-mono">
-                <div className="text-right">
-                  <div className="text-[10px] text-gray-300 uppercase tracking-tighter letter-spacing-1">
-                    TARGET: <span className="text-tactical-accent">NATIONAL_NIGERIA</span>
-                  </div>
-                  <div className="text-[8px] text-gray-500 uppercase tracking-[0.2em]">
-                    SENSORS: ACTIVE ({heatmapCells.length} NODES)
+              <div className="flex items-center gap-4 lg:gap-8 font-mono">
+                <div className="text-right hidden sm:block">
+                  <div className="text-[9px] lg:text-[10px] text-gray-300 uppercase tracking-tighter">
+                    TARGET: <span className="text-tactical-accent">NATIONAL_NG</span>
                   </div>
                 </div>
-                <div className="h-8 w-[1px] bg-tactical-border" />
-                <div className="text-[11px] text-tactical-accent tracking-[0.1em] font-bold">
-                  {new Date().toLocaleTimeString()} <span className="text-[8px] text-gray-500">ZULU</span>
+                {!isMobile && <div className="h-8 w-[1px] bg-tactical-border" />}
+                <div className="text-[10px] lg:text-[11px] text-tactical-accent tracking-[0.1em] font-bold">
+                  {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </div>
               </div>
             </motion.header>
           )}
         </AnimatePresence>
 
-        <div className="flex-1 relative">
-          <TacticalMap 
-            stateThreats={stateThreats} 
-            heatmapCells={heatmapCells} 
-            hotspots={hotspots}
-          />
-          
-          <AnimatePresence>
-            {uiVisible && (
-              <>
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                  <SignalIntel reports={intelReports} />
-                </motion.div>
-                
+        <div className="flex-1 relative flex flex-col lg:flex-row min-h-0 overflow-hidden">
+          {/* Map Section */}
+          <div className={cn("relative flex-1 order-1 lg:order-2", isMobile ? "h-[60vh]" : "h-full")}>
+            <TacticalMap 
+              stateThreats={stateThreats} 
+              heatmapCells={heatmapCells} 
+              hotspots={hotspots}
+            />
+
+            {/* In-Map Floating Stats (Mobile and Desktop) */}
+            <AnimatePresence>
+              {uiVisible && !isMobile && (
                 <motion.div 
                   initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
                   className="absolute bottom-6 left-6 z-20 pointer-events-none"
                 >
                   <div className="bg-tactical-panel/60 backdrop-blur-md border border-tactical-border p-4 w-72">
                     <h4 className="text-[10px] font-mono text-tactical-accent uppercase mb-3 tracking-widest border-b border-tactical-border pb-1">Regional Threat Matrix</h4>
-                    <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
+                    <div className="space-y-2 max-h-48 overflow-y-auto pr-2 pointer-events-auto">
                       {stateThreats.length === 0 ? (
                         <div className="text-[9px] text-gray-600 italic">Awaiting AI analysis...</div>
                       ) : (
@@ -289,19 +315,45 @@ export default function App() {
                     </div>
                   </div>
                 </motion.div>
-              </>
+              )}
+            </AnimatePresence>
+          </div>
+          
+          {/* Side Content Panel (Mobile: Scrollable Bottom Hub) */}
+          <AnimatePresence>
+            {uiVisible && (
+              <motion.div 
+                initial={isMobile ? { y: 300 } : { x: 300 }} 
+                animate={isMobile ? { y: 0 } : { x: 0 }} 
+                exit={isMobile ? { y: 300 } : { x: 300 }}
+                className={cn(
+                  "z-30 flex flex-col gap-4 p-4 min-w-0 transition-all",
+                  isMobile ? "h-[40vh] bg-tactical-panel/90 backdrop-blur-xl border-t border-tactical-border overflow-y-auto" : "w-[400px] h-full overflow-y-auto border-l border-tactical-border bg-tactical-bg"
+                )}
+              >
+                <div className="space-y-6 pb-20 lg:pb-0">
+                  <SignalIntel reports={intelReports} />
+                  <TacticalChat />
+                  
+                  {isMobile && stateThreats.length > 0 && (
+                    <div className="bg-black/40 border border-tactical-border p-4">
+                      <h4 className="text-[10px] font-mono text-tactical-accent uppercase mb-3 tracking-widest border-b border-tactical-border pb-1">Mobile Matrix</h4>
+                      <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+                         {stateThreats.slice(0, 8).sort((a, b) => b.threat_level - a.threat_level).map((state) => (
+                           <div key={state.state_name} className="flex justify-between items-center text-[9px] font-mono truncate">
+                             <span className="text-gray-400 truncate mr-2">{state.state_name}</span>
+                             <span className={state.threat_level >= 8 ? "text-tactical-danger" : "text-tactical-warning font-bold"}>{state.threat_level}/10</span>
+                           </div>
+                         ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
             )}
           </AnimatePresence>
         </div>
       </main>
-
-      <AnimatePresence>
-        {uiVisible && (
-          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}>
-            <TacticalChat />
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

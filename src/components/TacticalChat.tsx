@@ -63,8 +63,8 @@ export default function TacticalChat() {
 
   return (
     <div className={cn(
-      "fixed bottom-4 right-4 z-[2000] flex flex-col transition-all duration-300",
-      isMinimized ? "w-64 h-12" : "w-96 h-[500px]"
+      "w-full flex flex-col transition-all duration-300 min-h-[300px]",
+      isMinimized ? "h-12" : "h-[450px]"
     )}>
       {/* Header */}
       <div className="bg-tactical-panel border border-tactical-border p-3 flex items-center justify-between cursor-pointer" onClick={() => isMinimized && setIsMinimized(false)}>
