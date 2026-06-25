@@ -252,6 +252,7 @@ def build_grid(season, calibration):
                 "lat": round(lat, 3),
                 "lng": round(lng, 3),
                 "level": threat_level(lat, lng, season, calibration),
+                "level": threat_level(lat, lng, season, calibration),
             })
             col_index += 1
             lng = MIN_LNG + stagger + col_index * STEP_LNG

@@ -197,6 +197,35 @@ export default function App() {
    * Synchronizes with 'state_threats' table for live regional monitoring.
    */
   useEffect(() => {
+    const fetchStateThreats = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('state_threats')
+          .select('*');
+        
+        if (error || !data || data.length === 0) throw new Error('Supabase unavailable');
+        
+        setStateThreats(data || []);
+        setDataSource('LIVE');
+      } catch (e) {
+        console.warn('Falling back to Static Intelligence Cache for States');
+        const fallbackStates = (tacticalStaticData as any).states.map((s: any) => ({
+          state_name: s.n,
+          threat_level: s.l,
+          weather: s.w,
+          terrain_factors: s.t,
+          summary: s.s,
+          last_updated: new Date().toISOString()
+        }));
+        setStateThreats(fallbackStates);
+        setDataSource('CACHE');
+      }
+    };
+
+    fetchStateThreats();
+    
+    // ... (rest of the registration logic remains, but we add guards)
+
     const subscription = supabase
       .channel('state_threats_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'state_threats' }, (payload) => {
