@@ -64,7 +64,8 @@ export default function App() {
           threat_level: s.l,
           weather: s.w,
           terrain_factors: s.t,
-          summary: s.s
+          summary: s.s,
+          last_updated: new Date().toISOString()
         }));
         setStateThreats(fallbackStates);
         setDataSource('CACHE');
@@ -196,7 +197,7 @@ export default function App() {
     if (isAnalyzing) return;
     setIsAnalyzing(true);
     try {
-      const { data, error } = await supabase.functions.invoke('regional-security-analysis');
+      const { data, error } = await supabase.functions.invoke('analyze-security');
       if (error) throw error;
       console.log('AI Prediction triggered:', data);
     } catch (error) {

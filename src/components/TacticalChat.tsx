@@ -35,7 +35,7 @@ export default function TacticalChat() {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('super-endpoint', {
+      const { data, error } = await supabase.functions.invoke('chat', {
         body: { messages, userMessage }
       });
 
