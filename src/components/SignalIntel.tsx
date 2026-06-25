@@ -2,9 +2,10 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { AlertTriangle, Info, ShieldAlert } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
+import { IntelReport } from '../types';
 
 interface SignalIntelProps {
-  reports: any[];
+  reports: IntelReport[];
 }
 
 export default function SignalIntel({ reports }: SignalIntelProps) {
@@ -25,7 +26,7 @@ export default function SignalIntel({ reports }: SignalIntelProps) {
           ) : (
             reports.map((item, i) => (
               <motion.div 
-                key={item.id}
+                key={item.id ?? `${item.timestamp}-${item.state}-${i}`}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.05 }}
@@ -57,8 +58,14 @@ export default function SignalIntel({ reports }: SignalIntelProps) {
           )}
         </div>
         
-        <button className="w-full mt-4 py-2 border border-tactical-border text-[9px] font-mono uppercase text-gray-500 hover:text-tactical-accent hover:border-tactical-accent transition-colors pointer-events-auto">
-          View Full Archive
+        <button
+          type="button"
+          disabled
+          aria-disabled="true"
+          className="w-full mt-4 py-2 border border-tactical-border text-[9px] font-mono uppercase text-gray-600 cursor-not-allowed pointer-events-auto"
+          title="Archive view is not connected yet"
+        >
+          Archive Coming Online
         </button>
       </div>
     </div>

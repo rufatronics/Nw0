@@ -1,18 +1,93 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Sidebar from './components/Sidebar';
 import TacticalMap from './components/TacticalMap';
 import TacticalChat from './components/TacticalChat';
 import SignalIntel from './components/SignalIntel';
-import { Eye, EyeOff, Brain, Loader2, ShieldCheck, AlertCircle, MoreVertical, Globe, Map, Radio, X } from 'lucide-react';
+import { Eye, EyeOff, Brain, Loader2, MoreVertical, Globe, Map, Radio, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '@/src/lib/utils';
 import { supabase } from './lib/supabase';
 import { StateThreatData, HeatmapCell, IntelReport, RegionalHeatmap, Hotspot } from './types';
 import tacticalStaticData from './data/tactical_db.json';
 
+const normalizeStateThreat = (state: any): StateThreatData => ({
+  id: state.id,
+  state_name: state.state_name ?? state.n,
+  threat_level: Number(state.threat_level ?? state.l ?? 1),
+  weather: state.weather ?? state.w ?? 'Unknown',
+  terrain_factors: state.terrain_factors ?? state.t ?? 'Unknown terrain',
+  summary: state.summary ?? state.s ?? 'No state summary available.',
+  last_updated: state.last_updated ?? new Date().toISOString(),
+});
+
+const normalizeIntelReport = (report: any): IntelReport => ({
+  id: report.id,
+  source: report.source ?? report.src ?? 'CACHE',
+  content: report.content ?? report.c ?? 'No report content available.',
+  state: report.state ?? report.st ?? 'GLOBAL',
+  timestamp: report.timestamp ?? report.ts ?? new Date().toISOString(),
+  threat_level: Number(report.threat_level ?? report.l ?? 1),
+});
+
+const normalizeHeatmapCell = (cell: any): HeatmapCell => ({
+  lat: Number(cell.lat),
+  lng: Number(cell.lng),
+  level: Number(cell.level ?? cell.l ?? 1),
+});
+
+const normalizeHotspot = (spot: any): Hotspot => ({
+  id: String(spot.id),
+  lat: Number(spot.lat),
+  lng: Number(spot.lng),
+  label: String(spot.label),
+  threat: Number(spot.threat ?? 1),
+  reason: String(spot.reason ?? 'No tactical rationale available.'),
+});
+
+const staticStates = ((tacticalStaticData as any).states || []).map(normalizeStateThreat);
+const staticReports = ((tacticalStaticData as any).reports || []).map(normalizeIntelReport);
+const staticHeatmapCells = ((tacticalStaticData as any).hex_grid || []).map(normalizeHeatmapCell);
+const staticHotspots = ((tacticalStaticData as any).hotspots || []).map(normalizeHotspot);
+
+interface SectorListProps {
+  states: StateThreatData[];
+  activePanel: string;
+}
+
+function SectorList({ states, activePanel }: SectorListProps) {
+  const sortedStates = useMemo(
+    () => [...states].sort((a, b) => b.threat_level - a.threat_level || a.state_name.localeCompare(b.state_name)),
+    [states]
+  );
+
+  return (
+    <div className="space-y-2">
+      <div className="text-[9px] font-mono text-gray-500 uppercase">
+        Active Panel: <span className="text-tactical-accent">{activePanel}</span>
+      </div>
+      <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
+        {sortedStates.map((state) => (
+          <div key={state.state_name} className="flex items-center justify-between border border-tactical-border bg-white/5 px-3 py-2">
+            <div>
+              <div className="text-[10px] font-mono text-gray-200 uppercase">{state.state_name}</div>
+              <div className="text-[8px] font-mono text-gray-500 uppercase">{state.terrain_factors}</div>
+            </div>
+            <div className={cn(
+              "text-[10px] font-mono font-bold",
+              state.threat_level >= 8 ? 'text-tactical-danger' : state.threat_level >= 5 ? 'text-tactical-warning' : 'text-tactical-accent'
+            )}>
+              {state.threat_level}/10
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /**
  * Main Application Component (Northwatch Tactical)
- * 
+ *
  * Orchestrates the tactical intelligence dashboard, handling:
  * 1. Real-time Supabase data synchronization for threats and reports.
  * 2. Responsive UI state management (Mobile vs Desktop).
@@ -25,11 +100,77 @@ export default function App() {
   const [stateThreats, setStateThreats] = useState<StateThreatData[]>([]);
   const [intelReports, setIntelReports] = useState<IntelReport[]>([]);
   const [heatmapCells, setHeatmapCells] = useState<HeatmapCell[]>([]);
-  const [hotspots, setHotspots] = useState<Hotspot[]>([]);
+  const [hotspots, setHotspots] = useState<Hotspot[]>(staticHotspots);
   const [dataSource, setDataSource] = useState<'LIVE' | 'CACHE'>('LIVE');
   const [isMobile, setIsMobile] = useState(false);
   const [showSatellite, setShowSatellite] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activePanel, setActivePanel] = useState('map');
+  const [currentTime, setCurrentTime] = useState(() => new Date());
+
+  const handlePanelSelect = (id: string) => {
+    setActivePanel(id);
+    if (isMobile) setMenuOpen(true);
+  };
+
+  const loadStateThreats = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('state_threats')
+        .select('*');
+
+      if (error || !data || data.length === 0) throw new Error('Supabase unavailable');
+
+      setStateThreats((data || []).map(normalizeStateThreat));
+      setDataSource('LIVE');
+    } catch (e) {
+      console.warn('Falling back to Static Intelligence Cache for States');
+      setStateThreats(staticStates);
+      setDataSource('CACHE');
+    }
+  }, []);
+
+  const loadIntelReports = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('intel_reports')
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .limit(10);
+
+      if (error || !data || data.length === 0) throw new Error('Supabase unavailable');
+      setIntelReports((data || []).map(normalizeIntelReport));
+    } catch (e) {
+      setIntelReports(staticReports);
+    }
+  }, []);
+
+  const loadHeatmaps = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('regional_heatmaps')
+        .select('*');
+
+      if (error || !data || data.length === 0) throw new Error('Supabase unavailable');
+
+      const allCells: HeatmapCell[] = [];
+      data?.forEach((region: RegionalHeatmap) => {
+        if (region.cells) allCells.push(...region.cells.map(normalizeHeatmapCell));
+      });
+      setHeatmapCells(allCells);
+    } catch (e) {
+      setHeatmapCells(staticHeatmapCells);
+    }
+  }, []);
+
+  const refreshIntelData = useCallback(async () => {
+    await Promise.all([
+      loadStateThreats(),
+      loadIntelReports(),
+      loadHeatmaps(),
+    ]);
+    setHotspots(staticHotspots);
+  }, [loadHeatmaps, loadIntelReports, loadStateThreats]);
 
   /**
    * Device Detection
@@ -41,6 +182,15 @@ export default function App() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setCurrentTime(new Date()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    refreshIntelData();
+  }, [refreshIntelData]);
 
   /**
    * State Threat Data Pipeline
@@ -80,9 +230,10 @@ export default function App() {
       .channel('state_threats_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'state_threats' }, (payload) => {
         if (payload.eventType === 'INSERT') {
-          setStateThreats(prev => [...prev, payload.new as StateThreatData]);
+          setStateThreats(prev => [...prev, normalizeStateThreat(payload.new)]);
         } else if (payload.eventType === 'UPDATE') {
-          setStateThreats(prev => prev.map(item => item.state_name === payload.new.state_name ? payload.new as StateThreatData : item));
+          const next = normalizeStateThreat(payload.new);
+          setStateThreats(prev => prev.map(item => item.state_name === next.state_name ? next : item));
         } else if (payload.eventType === 'DELETE') {
           setStateThreats(prev => prev.filter(item => item.state_name !== payload.old.state_name));
         }
@@ -99,35 +250,10 @@ export default function App() {
    * Monitors 'intel_reports' for real-time field data and classified sitreps.
    */
   useEffect(() => {
-    const fetchIntelReports = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('intel_reports')
-          .select('*')
-          .order('timestamp', { ascending: false })
-          .limit(10);
-        
-        if (error || !data || data.length === 0) throw new Error('Supabase unavailable');
-        setIntelReports(data || []);
-      } catch (e) {
-        const fallbackReports = ((tacticalStaticData as any).reports || []).map((r: any) => ({
-          id: r.id,
-          source: r.src,
-          content: r.c,
-          state: r.st,
-          timestamp: r.ts,
-          threat_level: r.l
-        }));
-        setIntelReports(fallbackReports);
-      }
-    };
-
-    fetchIntelReports();
-
     const subscription = supabase
       .channel('intel_reports_changes')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'intel_reports' }, (payload) => {
-        setIntelReports(prev => [payload.new as IntelReport, ...prev].slice(0, 10));
+        setIntelReports(prev => [normalizeIntelReport(payload.new), ...prev].slice(0, 10));
       })
       .subscribe();
 
@@ -141,57 +267,17 @@ export default function App() {
    * Synchronizes regional danger grid cells for high-fidelity terrain visualization.
    */
   useEffect(() => {
-    const fetchHeatmaps = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('regional_heatmaps')
-          .select('*');
-        
-        if (error || !data || data.length === 0) throw new Error('Supabase unavailable');
-
-        const allCells: HeatmapCell[] = [];
-        data?.forEach((region: RegionalHeatmap) => {
-          if (region.cells) allCells.push(...region.cells);
-        });
-        setHeatmapCells(allCells);
-      } catch (e) {
-        setHeatmapCells((tacticalStaticData as any).hex_grid || []);
-      }
-    };
-
-    fetchHeatmaps();
-
     const subscription = supabase
       .channel('regional_heatmaps_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'regional_heatmaps' }, async () => {
-        // For heatmaps, it's often easier to refetch all to ensure consistency across regions
-        const { data } = await supabase.from('regional_heatmaps').select('*');
-        const allCells: HeatmapCell[] = [];
-        data?.forEach((region: RegionalHeatmap) => {
-          if (region.cells) allCells.push(...region.cells);
-        });
-        setHeatmapCells(allCells);
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'regional_heatmaps' }, () => {
+        loadHeatmaps();
       })
       .subscribe();
 
     return () => {
       supabase.removeChannel(subscription);
     };
-  }, []);
-
-  /**
-   * AI Predictive Engine Sync
-   * Loads high-priority predictive danger zones (Hotspots) from static or live intelligence caches.
-   */
-  useEffect(() => {
-    if (dataSource === 'CACHE') {
-      setHotspots((tacticalStaticData as any).hotspots || []);
-    } else {
-      // In a real live app we'd fetch from supabase, 
-      // but for now we follow the user's focus on the static DB for this turn
-      setHotspots((tacticalStaticData as any).hotspots || []);
-    }
-  }, [dataSource]);
+  }, [loadHeatmaps]);
 
   const runAIPrediction = async () => {
     if (isAnalyzing) return;
@@ -200,6 +286,7 @@ export default function App() {
       const { data, error } = await supabase.functions.invoke('analyze-security');
       if (error) throw error;
       console.log('AI Prediction triggered:', data);
+      await refreshIntelData();
     } catch (error) {
       console.error('AI Prediction failed:', error);
     } finally {
@@ -213,7 +300,8 @@ export default function App() {
       <div className="grid-overlay" />
 
       {/* UI Toggle Button */}
-      <button 
+      <button
+        type="button"
         onClick={() => setUiVisible(!uiVisible)}
         className="fixed top-4 left-4 z-[5000] w-10 h-10 bg-tactical-panel/90 backdrop-blur-md border border-tactical-border flex items-center justify-center text-tactical-accent hover:bg-tactical-accent hover:text-black transition-all rounded-sm shadow-xl"
       >
@@ -222,19 +310,20 @@ export default function App() {
 
       <AnimatePresence>
         {uiVisible && (
-          <motion.div 
-            initial={{ x: -300 }} 
-            animate={{ x: 0 }} 
-            exit={{ x: -300 }} 
+          <motion.div
+            initial={{ x: -300 }}
+            animate={{ x: 0 }}
+            exit={{ x: -300 }}
             className={cn(
               "z-[4000] h-full",
-              isMobile ? "fixed inset-0 w-72 bg-tactical-bg shadow-2xl" : "relative"
+              isMobile ? "fixed inset-y-0 left-0 w-72 bg-tactical-bg shadow-2xl" : "relative"
             )}
           >
             <div className="h-full relative pt-16">
-               <Sidebar />
+               <Sidebar activeId={activePanel} onSelect={handlePanelSelect} />
                {isMobile && (
-                 <button 
+                 <button
+                   type="button"
                    onClick={() => setUiVisible(false)}
                    className="absolute top-4 right-4 text-gray-500"
                  >
@@ -245,11 +334,11 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
-      
+
       <main className="flex-1 relative flex flex-col min-w-0 min-h-0 h-full">
         <AnimatePresence>
           {uiVisible && (
-            <motion.header 
+            <motion.header
               initial={{ y: -60 }} animate={{ y: 0 }} exit={{ y: -60 }}
               className={cn(
                 "border-b border-tactical-accent/20 bg-black/80 backdrop-blur-xl flex items-center justify-between px-4 z-[5000] transition-all",
@@ -257,7 +346,8 @@ export default function App() {
               )}
             >
               <div className="flex items-center gap-4 lg:gap-10">
-                <button 
+                <button
+                  type="button"
                   onClick={() => setMenuOpen(!menuOpen)}
                   className="p-2 hover:bg-tactical-accent/10 border border-transparent hover:border-tactical-accent/30 transition-all text-tactical-accent"
                 >
@@ -275,7 +365,8 @@ export default function App() {
 
                 {!isMobile && <div className="h-8 w-[1px] bg-tactical-border" />}
 
-                <button 
+                <button
+                  type="button"
                   onClick={runAIPrediction}
                   disabled={isAnalyzing}
                   className="group relative flex items-center gap-2 lg:gap-3 bg-black/40 border border-tactical-accent/20 px-3 lg:px-4 py-1 lg:py-1.5 overflow-hidden transition-all hover:border-tactical-accent/50"
@@ -287,7 +378,7 @@ export default function App() {
                   </span>
                 </button>
               </div>
-              
+
               <div className="flex items-center gap-4 lg:gap-8 font-mono">
                 <div className="text-right hidden sm:block">
                   <div className="text-[9px] lg:text-[10px] text-gray-300 uppercase tracking-tighter">
@@ -296,7 +387,7 @@ export default function App() {
                 </div>
                 {!isMobile && <div className="h-8 w-[1px] bg-tactical-border" />}
                 <div className="text-[10px] lg:text-[11px] text-tactical-accent tracking-[0.1em] font-bold">
-                  {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </div>
               </div>
             </motion.header>
@@ -306,7 +397,7 @@ export default function App() {
         {/* Tactical Dropdown Menu */}
         <AnimatePresence>
           {menuOpen && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
@@ -314,7 +405,7 @@ export default function App() {
             >
               <div className="flex items-center justify-between mb-6 border-b border-tactical-border pb-2">
                 <span className="text-xs font-mono text-tactical-accent tracking-[0.2em] uppercase">Tactical Operations Menu</span>
-                <button onClick={() => setMenuOpen(false)} className="text-gray-500 hover:text-white">
+                <button type="button" onClick={() => setMenuOpen(false)} className="text-gray-500 hover:text-white">
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -331,9 +422,9 @@ export default function App() {
                       <div className="text-[8px] text-gray-500 uppercase">Preserves vegetation & terrain</div>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        className="sr-only peer" 
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
                         checked={showSatellite}
                         onChange={() => setShowSatellite(!showSatellite)}
                       />
@@ -355,9 +446,7 @@ export default function App() {
                   <h4 className="text-[10px] font-mono text-gray-500 uppercase tracking-widest flex items-center gap-2">
                     <Globe className="w-3 h-3" /> National Sectors
                   </h4>
-                  <div className="max-h-60 overflow-y-auto">
-                    <Sidebar />
-                  </div>
+                  <SectorList states={stateThreats} activePanel={activePanel} />
                 </div>
               </div>
             </motion.div>
@@ -367,14 +456,14 @@ export default function App() {
         <div className="flex-1 relative flex flex-col min-h-0 overflow-hidden">
           {/* Map Section */}
           <div className={cn("relative flex-1 order-1 lg:order-2 h-full")}>
-            <TacticalMap 
-              stateThreats={stateThreats} 
-              heatmapCells={heatmapCells} 
+            <TacticalMap
+              stateThreats={stateThreats}
+              heatmapCells={heatmapCells}
               hotspots={hotspots}
               showSatellite={showSatellite}
             />
           </div>
-          
+
           {/* Tactical Chat remains fixed but accessible */}
           <AnimatePresence>
             {uiVisible && (

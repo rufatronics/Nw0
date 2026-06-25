@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polygon, Circle, Rectangle } from 'react-leaflet';
+import { MapContainer, TileLayer, Popup, Circle, Rectangle } from 'react-leaflet';
 import L from 'leaflet';
 import { cn } from '@/src/lib/utils';
 import { StateThreatData, HeatmapCell, Hotspot } from '../types';
@@ -19,11 +19,23 @@ L.Marker.prototype.options.icon = DefaultIcon;
 
 // Approximate centers for Northern Nigeria states
 const STATE_COORDINATES: Record<string, [number, number]> = {
+  "Abia": [5.4527, 7.5248],
   "Adamawa": [9.3265, 12.4453],
+  "Akwa Ibom": [5.0079, 7.8490],
+  "Anambra": [6.2209, 6.9369],
   "Bauchi": [10.3103, 9.8439],
+  "Bayelsa": [4.7719, 6.0699],
   "Benue": [7.3321, 8.7404],
   "Borno": [11.8311, 13.1510],
+  "Cross River": [5.8702, 8.5988],
+  "Delta": [5.5325, 5.8987],
+  "Ebonyi": [6.2649, 8.0137],
+  "Edo": [6.5438, 5.8987],
+  "Ekiti": [7.7190, 5.3110],
+  "Enugu": [6.5364, 7.4356],
+  "FCT": [9.0765, 7.3986],
   "Gombe": [10.2791, 11.1731],
+  "Imo": [5.5720, 7.0588],
   "Jigawa": [12.1614, 9.4858],
   "Kaduna": [10.5105, 7.4165],
   "Kano": [12.0022, 8.5920],
@@ -31,9 +43,15 @@ const STATE_COORDINATES: Record<string, [number, number]> = {
   "Kebbi": [11.4942, 4.2333],
   "Kogi": [7.7337, 6.6906],
   "Kwara": [8.4799, 4.5418],
+  "Lagos": [6.5244, 3.3792],
   "Nasarawa": [8.4904, 8.1991],
   "Niger": [9.9309, 5.5983],
+  "Ogun": [7.1608, 3.3486],
+  "Ondo": [7.2571, 5.2058],
+  "Osun": [7.5629, 4.5200],
+  "Oyo": [7.3775, 3.9470],
   "Plateau": [9.2182, 9.5179],
+  "Rivers": [4.8396, 6.9112],
   "Sokoto": [13.0059, 5.2476],
   "Taraba": [7.9994, 10.5888],
   "Yobe": [12.0000, 11.5000],
@@ -81,8 +99,6 @@ export default function TacticalMap({
   hotspots = [],
   showSatellite = false
 }: TacticalMapProps) {
-  console.log(`TacticalMap rendering with ${heatmapCells.length} heatmap cells.`);
-
   /**
    * Base Grid Memoization
    * Used for fallback visualization if the dynamic grid is loading or unavailable.
@@ -128,6 +144,7 @@ export default function TacticalMap({
         zoom={zoom} 
         scrollWheelZoom={true}
         zoomControl={false}
+        preferCanvas={true}
         className="w-full h-full"
       >
         {/* Layer Toggle logic: Satellite vs Dark Matter */}
