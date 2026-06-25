@@ -1,0 +1,49 @@
+name: Generate tactical intel data
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Keep free-tier Gemini usage conservative: one calibration call per day.
+    - cron: '17 3 * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tactical-intel-generation
+  cancel-in-progress: false
+
+jobs:
+  generate-intel-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Generate tactical database
+        env:
+          # Add this in GitHub as a repository secret named GEMINI_API_KEY.
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # Flash-Lite keeps the scheduled job aligned with Gemini's free-tier-friendly models.
+          GEMINI_MODEL: gemini-2.5-flash-lite
+        run: python automation/generate_tactical_db.py
+
+      - name: Commit generated data if changed
+        run: |
+          if git diff --quiet -- src/data/tactical_db.json; then
+            echo "No generated intel changes to commit."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data/tactical_db.json
+          git commit -m "Update generated tactical intel data"
+          git push

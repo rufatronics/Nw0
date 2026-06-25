@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Loader2, Minimize2, Maximize2, X } from 'lucide-react';
+import { Send, Bot, User, Loader2, Minimize2, Maximize2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import tacticalStaticData from '../data/tactical_db.json';
 import Markdown from 'react-markdown';
@@ -35,7 +35,7 @@ export default function TacticalChat() {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('super-endpoint', {
+      const { data, error } = await supabase.functions.invoke('chat', {
         body: { messages, userMessage }
       });
 
